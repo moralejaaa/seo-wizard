@@ -4,12 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 import { Upload, Zap, Lock, DownloadCloud, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import JSZip from 'jszip';
 
-// 1. Conexión Supabase (Tus datos verificados)
 const supabaseUrl = 'https://geixfrhlbaznjxaxpvrm.supabase.co';
 const supabaseKey = 'sb_publishable_-vedbc51MiECfsLoEDXpPg_gaxVFs5x';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 2. Tu API Key
 const GEMINI_KEY = "AIzaSyApD4h3Pp6cOUcnwkuHywHIF5W7V9KgM6c";
 
 export default function SEOWizard() {
@@ -44,29 +42,32 @@ export default function SEOWizard() {
           r.onload = () => res((r.result as string).split(',')[1]);
         });
 
-        // URL PARA GEMINI 2.0 FLASH (EL QUE TE FUNCIONÓ EN EL PANEL)
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+        // CAMBIO: Usamos v1 (Estable) en lugar de v1beta para forzar el uso de créditos
+        const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
 
         const resp = await fetch(apiUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({
             contents: [{
               parts: [
-                { text: "Genera un nombre de archivo SEO y un texto Alt. Responde SOLO en JSON: {\"fileName\": \"nombre-seo\", \"altText\": \"descripcion\"}" },
+                { text: "Return ONLY JSON: {\"fileName\": \"name-seo\", \"altText\": \"description\"}" },
                 { inlineData: { mimeType: file.type, data: base64Data } }
               ]
             }],
             generationConfig: { 
-              responseMimeType: "application/json" // Esto es clave para cuentas con facturación
+              responseMimeType: "application/json" 
             }
           })
         });
 
         if (!resp.ok) {
           const errorData = await resp.json();
-          // Si sale 429, el mensaje te dirá cuánto tiempo esperar
-          setErrorMessage(`Google: ${errorData.error.message}`);
+          setErrorMessage(`Error: ${errorData.error.message}`);
+          // Si nos da error de cuota, esperamos 5 segundos antes de reintentar la siguiente
+          if (resp.status === 429) await new Promise(r => setTimeout(r, 5000));
           continue;
         }
 
@@ -87,7 +88,7 @@ export default function SEOWizard() {
           currentDbCredits = newCount;
         }
       } catch (err) {
-        setErrorMessage("Error de procesamiento. Intenta de nuevo.");
+        setErrorMessage("Error de conexión. Intenta de nuevo.");
       }
     }
     setLoading(false);
@@ -105,7 +106,7 @@ export default function SEOWizard() {
 
       <main className="max-w-xl mx-auto text-center font-bold">
         {errorMessage && (
-          <div className="mb-6 bg-red-500/10 border border-red-500 p-4 rounded-2xl text-red-500 text-[10px] uppercase">
+          <div className="mb-6 bg-red-500/10 border border-red-500 p-4 rounded-2xl text-red-500 text-[10px]">
             {errorMessage}
           </div>
         )}
