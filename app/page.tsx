@@ -31,7 +31,6 @@ export default function SEOWizard() {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    // Validación de seguridad para créditos
     if (credits < files.length) {
       setShowUpgrade(true);
       return;
@@ -84,10 +83,12 @@ export default function SEOWizard() {
     setLoading(false);
   };
 
-  // FUNCIÓN MAESTRA: Descarga ZIP + CSV (Excel)
+  // FUNCIÓN MAESTRA: Descarga ZIP + CSV (CON CORRECCIÓN DE ACENTOS)
   const downloadAllAssets = async () => {
     const zip = new JSZip();
-    let csvContent = "nombre_archivo;texto_alternativo_seo\n"; // Formato compatible con Excel
+    
+    // El prefijo \uFEFF es el BOM (Byte Order Mark) para que Excel reconozca UTF-8 con acentos
+    let csvContent = "\uFEFFnombre_archivo;texto_alternativo_seo\n"; 
 
     results.forEach((res) => {
       // Añadir al ZIP
@@ -98,14 +99,14 @@ export default function SEOWizard() {
       csvContent += `${res.fileName}.jpg;${res.altText}\n`;
     });
 
-    // Generar y descargar ZIP
+    // Descargar ZIP
     const zipBlob = await zip.generateAsync({ type: "blob" });
     const linkZip = document.createElement('a');
     linkZip.href = URL.createObjectURL(zipBlob);
     linkZip.download = "pack_imagenes_seo.zip";
     linkZip.click();
 
-    // Generar y descargar CSV
+    // Descargar CSV corregido
     const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const linkCsv = document.createElement('a');
     linkCsv.href = URL.createObjectURL(csvBlob);
@@ -142,7 +143,7 @@ export default function SEOWizard() {
           <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
             <Sparkles className="w-3 h-3" /> IA Optimization Engine
           </div>
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-[0.85] italic">
+          <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-[0.85] italic text-white">
             SEO <span className="text-blue-600">MAGIC</span> BATCH
           </h1>
           <p className="text-gray-500 max-w-lg mx-auto text-sm font-medium leading-relaxed">
@@ -169,7 +170,7 @@ export default function SEOWizard() {
             <div className="absolute inset-0 z-20 backdrop-blur-xl bg-black/80 flex flex-col items-center justify-center p-10 rounded-[3.5rem] animate-in fade-in duration-700">
               <Crown className="w-14 h-14 text-yellow-500 mb-6 drop-shadow-[0_0_15px_rgba(234,179,8,0.4)]" />
               <h3 className="text-4xl font-black italic mb-3 uppercase tracking-tighter">Plan Gratuito Agotado</h3>
-              <p className="text-gray-400 text-sm mb-8 text-center max-w-xs">Has optimizado tus primeras fotos. Pásate a Pro para procesar miles de imágenes sin límites.</p>
+              <p className="text-gray-400 text-sm mb-8 text-center max-w-xs">Pásate a Pro para procesar miles de imágenes sin límites.</p>
               <button className="bg-white text-black px-12 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-2xl">
                 Obtener Acceso Pro
               </button>
@@ -184,8 +185,8 @@ export default function SEOWizard() {
                 <Upload className="w-10 h-10 text-white" />
               </div>
             )}
-            <h2 className="text-3xl font-black italic tracking-tighter uppercase">{loading ? "Procesando Lote..." : "Subir Imágenes"}</h2>
-            <p className="text-gray-500 text-[10px] mt-3 uppercase tracking-[0.3em] font-bold">Selecciona hasta {credits} fotos a la vez</p>
+            <h2 className="text-3xl font-black italic tracking-tighter uppercase">{loading ? "Hechizando..." : "Subir Imágenes"}</h2>
+            <p className="text-gray-500 text-[10px] mt-3 uppercase tracking-[0.3em] font-bold">Selecciona hasta {credits} fotos</p>
             <input 
               type="file" 
               className="hidden" 
@@ -201,8 +202,8 @@ export default function SEOWizard() {
         {results.length > 0 && (
           <div className="mt-20">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 border-b border-white/5 pb-10 mb-10">
-              <div>
-                <h4 className="text-2xl font-black italic uppercase tracking-tighter italic">Resultados del Lote</h4>
+              <div className="text-left">
+                <h4 className="text-2xl font-black italic uppercase tracking-tighter italic">Resultados Listos</h4>
                 <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">{results.length} Archivos Optimizados</p>
               </div>
               <button 
@@ -222,7 +223,7 @@ export default function SEOWizard() {
                   
                   <div className="flex-1 min-w-0 w-full grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                     <div className="bg-black/20 p-3 rounded-xl border border-white/5">
-                      <p className="text-[8px] font-black text-blue-500 uppercase mb-1 tracking-widest">Nombre de Archivo</p>
+                      <p className="text-[8px] font-black text-blue-500 uppercase mb-1 tracking-widest">Nombre SEO</p>
                       <div className="flex justify-between items-center gap-2">
                         <code className="text-[10px] font-mono text-gray-300 truncate tracking-tight">{res.fileName}.jpg</code>
                         <button onClick={() => copyToClipboard(res.fileName, res.id, 'name')} className="text-gray-600 hover:text-white transition-colors">
@@ -232,9 +233,9 @@ export default function SEOWizard() {
                     </div>
                     
                     <div className="bg-black/20 p-3 rounded-xl border border-white/5">
-                      <p className="text-[8px] font-black text-purple-500 uppercase mb-1 tracking-widest">Alt Text SEO</p>
+                      <p className="text-[8px] font-black text-purple-500 uppercase mb-1 tracking-widest">Alt Text</p>
                       <div className="flex justify-between items-center gap-2">
-                        <p className="text-[10px] text-gray-500 italic truncate italic">"{res.altText}"</p>
+                        <p className="text-[10px] text-gray-400 italic truncate italic">"{res.altText}"</p>
                         <button onClick={() => copyToClipboard(res.altText, res.id, 'alt')} className="text-gray-600 hover:text-white transition-colors">
                           {copiedIndex === `${res.id}-alt` ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
                         </button>
