@@ -4,12 +4,11 @@ import { createClient } from '@supabase/supabase-js';
 import { Upload, Zap, Lock, DownloadCloud, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import JSZip from 'jszip';
 
-// Tus datos de Supabase que ya funcionan
+// 1. TUS CREDENCIALES (YA VERIFICADAS)
 const supabaseUrl = 'https://geixfrhlbaznjxaxpvrm.supabase.co';
 const supabaseKey = 'sb_publishable_-vedbc51MiECfsLoEDXpPg_gaxVFs5x';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Tu API Key de Gemini
 const GEMINI_KEY = "AIzaSyApD4h3Pp6cOUcnwkuHywHIF5W7V9KgM6c";
 
 export default function SEOWizard() {
@@ -19,6 +18,7 @@ export default function SEOWizard() {
   const [userEmail, setUserEmail] = useState("cliente_nuevo@test.com");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Cargar créditos desde Supabase
   const fetchCredits = async () => {
     const { data: profile } = await supabase
       .from('profiles')
@@ -46,7 +46,10 @@ export default function SEOWizard() {
     let currentDbCredits = await fetchCredits();
 
     for (const file of files) {
-      if (currentDbCredits <= 0) break;
+      if (currentDbCredits <= 0) {
+        setErrorMessage("Sin créditos en la base de datos.");
+        break;
+      }
 
       try {
         const base64Data = await new Promise<string>((res) => {
@@ -54,7 +57,7 @@ export default function SEOWizard() {
           r.onload = () => res((r.result as string).split(',')[1]);
         });
 
-        // URL CORREGIDA: Usando el modelo 2.0 que probaste en AI Studio
+        // 2. LA URL QUE TE FUNCIONÓ EN EL PANEL DE PRUEBA
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
 
         const resp = await fetch(apiUrl, {
@@ -63,17 +66,20 @@ export default function SEOWizard() {
           body: JSON.stringify({
             contents: [{
               parts: [
-                { text: "Return ONLY JSON: {\"fileName\": \"name-seo\", \"altText\": \"seo description\"}" },
+                { text: "Return ONLY JSON: {\"fileName\": \"nombre-archivo-seo\", \"altText\": \"descripcion seo de la imagen\"}" },
                 { inlineData: { mimeType: file.type, data: base64Data } }
               ]
             }],
-            generationConfig: { responseMimeType: "application/json" }
+            generationConfig: { 
+              responseMimeType: "application/json",
+              temperature: 1
+            }
           })
         });
 
         if (!resp.ok) {
           const errorData = await resp.json();
-          setErrorMessage(`Error de Google: ${errorData.error.message}`);
+          setErrorMessage(`Google dice: ${errorData.error.message}`);
           continue;
         }
 
@@ -84,6 +90,7 @@ export default function SEOWizard() {
           const data = JSON.parse(rawText);
           const newCount = currentDbCredits - 1;
           
+          // Actualizar crédito en Supabase
           await supabase.from('profiles').update({ usage_count: newCount }).eq('email', userEmail);
 
           setResults(prev => [{
@@ -95,7 +102,8 @@ export default function SEOWizard() {
           currentDbCredits = newCount;
         }
       } catch (err) {
-        setErrorMessage("Error de conexión. Intenta de nuevo.");
+        console.error(err);
+        setErrorMessage("Error procesando imagen. Intenta de nuevo.");
       }
     }
     setLoading(false);
@@ -109,41 +117,48 @@ export default function SEOWizard() {
     const zipB = await zip.generateAsync({ type: "blob" });
     const lz = document.createElement('a');
     lz.href = URL.createObjectURL(zipB);
-    lz.download = "seo_pack.zip";
+    lz.download = "seo_magic_pack.zip";
     lz.click();
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-10">
+    <div className="min-h-screen bg-black text-white p-6 md:p-10 font-sans">
       <nav className="max-w-4xl mx-auto flex justify-between items-center mb-10">
         <h1 className="font-black italic text-2xl text-blue-500 uppercase tracking-tighter">SEO WIZARD PRO</h1>
         <div className="bg-white/10 px-4 py-2 rounded-full flex items-center gap-2 border border-white/20">
           <Zap className="w-4 h-4 text-yellow-500 fill-current" />
-          <span className="text-xs font-bold">{credits} CRÉDITOS</span>
+          <span className="text-xs font-bold uppercase">{credits} CRÉDITOS</span>
         </div>
       </nav>
 
       <main className="max-w-xl mx-auto">
         {errorMessage && (
-          <div className="mb-5 bg-red-500/20 border border-red-500 p-4 rounded-2xl text-red-200 text-xs font-bold uppercase">
+          <div className="mb-6 bg-red-500/10 border border-red-500/50 p-4 rounded-2xl flex items-center gap-3 text-red-500 text-xs font-bold uppercase">
+            <AlertCircle className="w-5 h-5" />
             {errorMessage}
           </div>
         )}
 
-        <div className={`border-2 border-dashed rounded-[3rem] p-20 text-center ${credits <= 0 ? 'border-red-500/20' : 'border-blue-500/20 bg-blue-500/[0.02]'}`}>
+        <div className={`border-2 border-dashed rounded-[3rem] p-16 text-center transition-all ${credits <= 0 ? 'border-red-500/20' : 'border-blue-500/20 bg-blue-500/[0.02]'}`}>
           {credits <= 0 ? (
             <div className="flex flex-col items-center">
               <Lock className="w-12 h-12 text-red-500 mb-4" />
-              <h2 className="font-black">SIN CRÉDITOS</h2>
+              <h2 className="text-xl font-black uppercase italic">Saldo Agotado</h2>
             </div>
           ) : (
-            <label className="cursor-pointer">
+            <label className="cursor-pointer group block">
               {loading ? (
-                <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto" />
+                <div className="flex flex-col items-center">
+                  <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
+                  <p className="text-sm font-black italic uppercase animate-pulse">La IA está trabajando...</p>
+                </div>
               ) : (
                 <>
-                  <Upload className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-                  <h2 className="font-black italic text-xl uppercase">Subir Imágenes</h2>
+                  <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl group-hover:scale-110 transition-transform">
+                    <Upload className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-black italic uppercase mb-1">Cargar Imágenes</h2>
+                  <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Se procesarán con Gemini 2.0</p>
                 </>
               )}
               <input type="file" className="hidden" onChange={handleUpload} accept="image/*" multiple disabled={loading} />
@@ -152,18 +167,24 @@ export default function SEOWizard() {
         </div>
 
         {results.length > 0 && (
-          <div className="mt-10 space-y-4">
-            <button onClick={downloadAll} className="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase text-xs">Descargar Pack ZIP</button>
-            {results.map(res => (
-              <div key={res.id} className="bg-white/5 p-4 rounded-2xl flex items-center gap-4 border border-white/10">
-                <img src={res.preview} className="w-12 h-12 rounded-lg object-cover" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-black text-blue-400 truncate uppercase">{res.fileName}.jpg</p>
-                  <p className="text-[10px] text-gray-500 italic truncate">"{res.altText}"</p>
+          <div className="mt-10 space-y-4 animate-in fade-in slide-in-from-bottom-2">
+            <button onClick={downloadAll} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors shadow-lg shadow-white/5">
+              <DownloadCloud className="w-4 h-4" /> Descargar Pack ZIP
+            </button>
+            <div className="grid grid-cols-1 gap-3">
+              {results.map(res => (
+                <div key={res.id} className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl flex items-center gap-4 hover:bg-white/[0.05] transition-colors">
+                  <img src={res.preview} className="w-12 h-12 rounded-xl object-cover border border-white/10" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-3 h-3 text-green-500" />
+                      <p className="text-[10px] font-black text-blue-400 uppercase truncate tracking-tight">{res.fileName}.jpg</p>
+                    </div>
+                    <p className="text-[10px] text-gray-500 italic truncate mt-0.5">"{res.altText}"</p>
+                  </div>
                 </div>
-                <CheckCircle className="w-4 h-4 text-green-500" />
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </main>
