@@ -1,7 +1,13 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { Upload, Crown, Loader2, Copy, Check, Download, Sparkles, Trash2, Zap, Archive, FileSpreadsheet } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
+import { Upload, Crown, Loader2, Copy, Check, Download, Sparkles, Trash2, Zap, Archive, ShieldCheck, CreditCard, Lock } from 'lucide-react';
 import JSZip from 'jszip';
+
+// CONFIGURACIÓN DE TU BASE DE DATOS SUPABASE
+const supabaseUrl = 'https://geixfrhlbaznjxaxpvrm.supabase.co';
+const supabaseKey = 'sb_publishable_-vedbc51MiECfsLoEDXpPg_gaxVFs5x';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const GEMINI_KEY = process.env.NEXT_PUBLIC_GEMINI_KEY;
 
@@ -10,34 +16,55 @@ export default function SEOWizard() {
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
   const [language, setLanguage] = useState<'ES' | 'EN'>('ES');
-  
-  // SISTEMA DE CRÉDITOS Y PERSISTENCIA
-  const [credits, setCredits] = useState(5);
-  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [credits, setCredits] = useState(0);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
+  // 1. CARGAR DATOS DESDE SUPABASE AL INICIAR
   useEffect(() => {
-    const savedResults = localStorage.getItem('seo_results');
-    const savedCredits = localStorage.getItem('seo_credits');
-    if (savedResults) setResults(JSON.parse(savedResults));
-    if (savedCredits !== null) setCredits(Number(savedCredits));
+    const fetchUserData = async () => {
+      // Por ahora, simulamos que el usuario ingresó un email o usamos uno local
+      // En una versión final, aquí iría el sistema de Login
+      const testEmail = "usuario_prueba@gmail.com"; 
+      setUserEmail(testEmail);
+
+      let { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', testEmail)
+        .single();
+
+      if (profile) {
+        setCredits(profile.usage_count);
+      } else {
+        // Si no existe, lo creamos con 5 créditos de regalo
+        const { data: newProfile } = await supabase
+          .from('profiles')
+          .insert([{ email: testEmail, usage_count: 5, is_pro: false }])
+          .select()
+          .single();
+        if (newProfile) setCredits(newProfile.usage_count);
+      }
+    };
+
+    fetchUserData();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('seo_results', JSON.stringify(results));
-    localStorage.setItem('seo_credits', credits.toString());
-  }, [results, credits]);
+  // 2. ACTUALIZAR CRÉDITOS EN SUPABASE DESPUÉS DE CADA USO
+  const updateCreditsInDB = async (newCount: number) => {
+    if (!userEmail) return;
+    await supabase
+      .from('profiles')
+      .update({ usage_count: newCount })
+      .eq('email', userEmail);
+    setCredits(newCount);
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
-    if (credits < files.length) {
-      setShowUpgrade(true);
-      return;
-    }
+    if (files.length === 0 || credits < files.length) return;
 
     setLoading(true);
-
     for (const file of files) {
       try {
         const base64Data = await new Promise<string>((resolve) => {
@@ -53,208 +80,106 @@ export default function SEOWizard() {
             contents: [{
               parts: [
                 { inlineData: { mimeType: file.type, data: base64Data } },
-                { text: `Analyze for e-commerce SEO in ${language === 'ES' ? 'Spanish' : 'English'}. Respond ONLY JSON: {"fileName": "seo-optimized-name", "altText": "descriptive alt text"}` }
+                { text: `Analyze for e-commerce SEO in ${language === 'ES' ? 'Spanish' : 'English'}. Respond ONLY JSON: {"fileName": "seo-name", "altText": "description"}` }
               ]
             }]
           })
         });
 
         const result = await response.json();
-
         if (result.candidates?.[0]) {
-          const textResponse = result.candidates[0].content.parts[0].text;
-          const jsonStart = textResponse.indexOf('{');
-          const jsonEnd = textResponse.lastIndexOf('}') + 1;
-          const data = JSON.parse(textResponse.substring(jsonStart, jsonEnd));
-
-          const previewUrl = await new Promise<string>((res) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => res(reader.result as string);
-          });
-
-          setResults(prev => [{ ...data, id: Math.random().toString(), preview: previewUrl }, ...prev]);
-          setCredits(prev => prev - 1);
+          const text = result.candidates[0].content.parts[0].text;
+          const data = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+          
+          setResults(prev => [{ ...data, id: Math.random().toString(), preview: `data:${file.type};base64,${base64Data}` }, ...prev]);
+          
+          // Bajamos un crédito en la base de datos real
+          await updateCreditsInDB(credits - 1);
         }
-      } catch (err) {
-        console.error("Error procesando imagen:", err);
-      }
+      } catch (err) { console.error(err); }
     }
     setLoading(false);
   };
 
-  // FUNCIÓN MAESTRA: Descarga ZIP + CSV (CON CORRECCIÓN DE ACENTOS)
   const downloadAllAssets = async () => {
     const zip = new JSZip();
-    
-    // El prefijo \uFEFF es el BOM (Byte Order Mark) para que Excel reconozca UTF-8 con acentos
     let csvContent = "\uFEFFnombre_archivo;texto_alternativo_seo\n"; 
-
     results.forEach((res) => {
-      // Añadir al ZIP
-      const base64Data = res.preview.split(',')[1];
-      zip.file(`${res.fileName}.jpg`, base64Data, { base64: true });
-
-      // Añadir fila al CSV
+      zip.file(`${res.fileName}.jpg`, res.preview.split(',')[1], { base64: true });
       csvContent += `${res.fileName}.jpg;${res.altText}\n`;
     });
-
-    // Descargar ZIP
     const zipBlob = await zip.generateAsync({ type: "blob" });
     const linkZip = document.createElement('a');
     linkZip.href = URL.createObjectURL(zipBlob);
-    linkZip.download = "pack_imagenes_seo.zip";
+    linkZip.download = "pack_seo_final.zip";
     linkZip.click();
 
-    // Descargar CSV corregido
     const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const linkCsv = document.createElement('a');
     linkCsv.href = URL.createObjectURL(csvBlob);
-    linkCsv.download = "importar_seo_tienda.csv";
+    linkCsv.download = "data_seo.csv";
     linkCsv.click();
   };
 
-  const copyToClipboard = (text: string, id: string, type: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIndex(`${id}-${type}`);
-    setTimeout(() => setCopiedIndex(null), 2000);
-  };
-
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-6 md:p-12 font-sans selection:bg-blue-500/30">
-      <div className="max-w-4xl mx-auto">
-        
-        {/* Nav de Estado */}
-        <nav className="flex justify-between items-center mb-16">
-          <div className="flex items-center gap-2 font-black italic text-xl tracking-tighter">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center italic shadow-[0_0_15px_rgba(37,99,235,0.5)]">W</div>
-            SEO WIZARD
+    <div className="min-h-screen bg-[#020202] text-white font-sans">
+      <nav className="border-b border-white/5 bg-black/50 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2 font-black italic tracking-tighter text-xl text-blue-500">
+            SEO WIZARD PRO
           </div>
-          <div className="flex items-center gap-4">
-            <div className="bg-white/5 border border-white/10 px-4 py-1.5 rounded-full flex items-center gap-2 backdrop-blur-md">
-              <Zap className={`w-3 h-3 ${credits > 0 ? 'text-yellow-500 fill-current' : 'text-red-500'}`} />
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">{credits} CRÉDITOS</span>
-            </div>
+          <div className="bg-blue-600/10 px-4 py-2 rounded-full border border-blue-500/20 flex items-center gap-2">
+            <Zap className="w-3 h-3 text-yellow-500 fill-current" />
+            <span className="text-[10px] font-black uppercase tracking-widest">{credits} CRÉDITOS REALES</span>
           </div>
-        </nav>
-
-        {/* Hero Section */}
-        <section className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
-            <Sparkles className="w-3 h-3" /> IA Optimization Engine
-          </div>
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-[0.85] italic text-white">
-            SEO <span className="text-blue-600">MAGIC</span> BATCH
-          </h1>
-          <p className="text-gray-500 max-w-lg mx-auto text-sm font-medium leading-relaxed">
-            Sube lotes de imágenes, deja que la IA las renombre y genera el archivo de importación para tu tienda en segundos.
-          </p>
-        </section>
-
-        {/* Selector de Idioma */}
-        <div className="flex justify-center gap-3 mb-10">
-          {['ES', 'EN'].map((lang) => (
-            <button 
-              key={lang}
-              onClick={() => setLanguage(lang as 'ES' | 'EN')}
-              className={`px-8 py-2.5 rounded-xl text-[10px] font-black transition-all border ${language === lang ? 'bg-blue-600 border-blue-500 text-white shadow-lg' : 'bg-transparent border-white/10 text-gray-500 hover:border-white/20'}`}
-            >
-              {lang === 'ES' ? 'ESPAÑOL' : 'ENGLISH'}
-            </button>
-          ))}
         </div>
+      </nav>
 
-        {/* Área de Carga Masiva */}
-        <div className={`relative border-2 border-dashed rounded-[3.5rem] p-12 md:p-20 transition-all duration-500 ${credits <= 0 ? 'border-red-900/40 bg-red-950/5' : 'border-white/10 bg-white/[0.02] hover:border-blue-500/30'}`}>
+      <main className="max-w-4xl mx-auto px-6 pt-16">
+        <div className={`relative border-2 border-dashed rounded-[3rem] p-12 md:p-20 transition-all ${credits <= 0 ? 'border-red-900/40 bg-red-950/5' : 'border-blue-600/20 bg-white/[0.02]'}`}>
           {credits <= 0 && (
-            <div className="absolute inset-0 z-20 backdrop-blur-xl bg-black/80 flex flex-col items-center justify-center p-10 rounded-[3.5rem] animate-in fade-in duration-700">
-              <Crown className="w-14 h-14 text-yellow-500 mb-6 drop-shadow-[0_0_15px_rgba(234,179,8,0.4)]" />
-              <h3 className="text-4xl font-black italic mb-3 uppercase tracking-tighter">Plan Gratuito Agotado</h3>
-              <p className="text-gray-400 text-sm mb-8 text-center max-w-xs">Pásate a Pro para procesar miles de imágenes sin límites.</p>
-              <button className="bg-white text-black px-12 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-2xl">
-                Obtener Acceso Pro
+            <div className="absolute inset-0 z-20 backdrop-blur-2xl bg-black/90 flex flex-col items-center justify-center p-10 rounded-[3rem]">
+              <Lock className="w-12 h-12 text-yellow-500 mb-6" />
+              <h3 className="text-3xl font-black uppercase italic tracking-tighter mb-4 text-center">Créditos Agotados</h3>
+              <button 
+                onClick={() => alert("Pronto: Pasarela Cryptomus Automatizada")}
+                className="bg-blue-600 text-white px-10 py-4 rounded-full font-black text-[10px] uppercase tracking-widest shadow-xl"
+              >
+                Comprar Paquete Pro
               </button>
             </div>
           )}
 
           <label className={`flex flex-col items-center ${credits <= 0 ? 'opacity-10' : 'cursor-pointer group'}`}>
-            {loading ? (
-              <Loader2 className="w-20 h-20 text-blue-500 animate-spin" />
-            ) : (
-              <div className="w-24 h-24 bg-blue-600 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-[0_20px_50px_rgba(37,99,235,0.3)] group-hover:scale-110 transition-all duration-500">
-                <Upload className="w-10 h-10 text-white" />
-              </div>
-            )}
-            <h2 className="text-3xl font-black italic tracking-tighter uppercase">{loading ? "Hechizando..." : "Subir Imágenes"}</h2>
-            <p className="text-gray-500 text-[10px] mt-3 uppercase tracking-[0.3em] font-bold">Selecciona hasta {credits} fotos</p>
-            <input 
-              type="file" 
-              className="hidden" 
-              onChange={handleUpload} 
-              accept="image/*" 
-              multiple 
-              disabled={loading || credits <= 0} 
-            />
+            {loading ? <Loader2 className="w-16 h-16 text-blue-600 animate-spin" /> : <Upload className="w-12 h-12 text-blue-600 mb-6 group-hover:scale-110 transition-transform" />}
+            <span className="text-2xl font-black italic uppercase tracking-tighter">{loading ? "Hechizando..." : "Subir Imágenes"}</span>
+            <input type="file" className="hidden" onChange={handleUpload} accept="image/*" multiple disabled={loading || credits <= 0} />
           </label>
         </div>
 
-        {/* Acciones Masivas y Resultados */}
         {results.length > 0 && (
-          <div className="mt-20">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6 border-b border-white/5 pb-10 mb-10">
-              <div className="text-left">
-                <h4 className="text-2xl font-black italic uppercase tracking-tighter italic">Resultados Listos</h4>
-                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">{results.length} Archivos Optimizados</p>
-              </div>
-              <button 
-                onClick={downloadAllAssets}
-                className="flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-xl"
-              >
-                <Archive className="w-4 h-4" /> Descargar Pack (.ZIP + .CSV)
-              </button>
-            </div>
-
-            <div className="space-y-4 pb-32">
+          <div className="mt-20 pb-40">
+            <button onClick={downloadAllAssets} className="w-full bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest mb-10">
+              Descargar Pack ZIP + Excel
+            </button>
+            <div className="grid grid-cols-1 gap-4">
               {results.map((res) => (
-                <div key={res.id} className="group bg-white/[0.02] border border-white/5 p-4 rounded-3xl flex flex-col md:flex-row items-center gap-6 hover:bg-white/[0.04] transition-all">
-                  <div className="relative w-24 h-24 flex-shrink-0">
-                    <img src={res.preview} className="w-full h-full rounded-2xl object-cover border border-white/10 shadow-2xl" />
+                <div key={res.id} className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl flex items-center gap-6">
+                  <img src={res.preview} className="w-16 h-16 rounded-xl object-cover" />
+                  <div className="text-left">
+                    <p className="text-[10px] font-mono text-blue-400">{res.fileName}.jpg</p>
+                    <p className="text-[10px] text-gray-500 italic">"{res.altText}"</p>
                   </div>
-                  
-                  <div className="flex-1 min-w-0 w-full grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                    <div className="bg-black/20 p-3 rounded-xl border border-white/5">
-                      <p className="text-[8px] font-black text-blue-500 uppercase mb-1 tracking-widest">Nombre SEO</p>
-                      <div className="flex justify-between items-center gap-2">
-                        <code className="text-[10px] font-mono text-gray-300 truncate tracking-tight">{res.fileName}.jpg</code>
-                        <button onClick={() => copyToClipboard(res.fileName, res.id, 'name')} className="text-gray-600 hover:text-white transition-colors">
-                          {copiedIndex === `${res.id}-name` ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-black/20 p-3 rounded-xl border border-white/5">
-                      <p className="text-[8px] font-black text-purple-500 uppercase mb-1 tracking-widest">Alt Text</p>
-                      <div className="flex justify-between items-center gap-2">
-                        <p className="text-[10px] text-gray-400 italic truncate italic">"{res.altText}"</p>
-                        <button onClick={() => copyToClipboard(res.altText, res.id, 'alt')} className="text-gray-600 hover:text-white transition-colors">
-                          {copiedIndex === `${res.id}-alt` ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button 
-                    onClick={() => setResults(prev => prev.filter(i => i.id !== res.id))}
-                    className="p-3 text-gray-800 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
                 </div>
               ))}
             </div>
           </div>
         )}
-      </div>
+      </main>
+
+      <footer className="py-10 text-center text-gray-600 border-t border-white/5">
+        <p className="text-[9px] font-bold uppercase tracking-[0.3em]">© 2026 SEO Wizard - Cloud Powered by Supabase</p>
+      </footer>
     </div>
   );
 }
