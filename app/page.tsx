@@ -4,10 +4,12 @@ import { createClient } from '@supabase/supabase-js';
 import { Upload, Zap, Lock, DownloadCloud, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import JSZip from 'jszip';
 
+// Datos de Supabase (Ya funcionan)
 const supabaseUrl = 'https://geixfrhlbaznjxaxpvrm.supabase.co';
 const supabaseKey = 'sb_publishable_-vedbc51MiECfsLoEDXpPg_gaxVFs5x';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Tu API Key (La que verificamos en AI Studio)
 const GEMINI_KEY = "AIzaSyApD4h3Pp6cOUcnwkuHywHIF5W7V9KgM6c";
 
 export default function SEOWizard() {
@@ -42,32 +44,29 @@ export default function SEOWizard() {
           r.onload = () => res((r.result as string).split(',')[1]);
         });
 
-        // CAMBIO: Usamos v1 (Estable) en lugar de v1beta para forzar el uso de créditos
+        // URL Estable para Gemini 2.0 Flash
         const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
 
         const resp = await fetch(apiUrl, {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{
               parts: [
-                { text: "Return ONLY JSON: {\"fileName\": \"name-seo\", \"altText\": \"description\"}" },
+                { text: "Analiza la imagen y genera un nombre de archivo SEO y un texto Alt. Responde estrictamente en JSON: {\"fileName\": \"...\", \"altText\": \"...\"}" },
                 { inlineData: { mimeType: file.type, data: base64Data } }
               ]
             }],
             generationConfig: { 
-              responseMimeType: "application/json" 
+              // CORRECCIÓN AQUÍ: Se usa guion bajo para evitar el error de "UNKNOWN NAME"
+              response_mime_type: "application/json" 
             }
           })
         });
 
         if (!resp.ok) {
           const errorData = await resp.json();
-          setErrorMessage(`Error: ${errorData.error.message}`);
-          // Si nos da error de cuota, esperamos 5 segundos antes de reintentar la siguiente
-          if (resp.status === 429) await new Promise(r => setTimeout(r, 5000));
+          setErrorMessage(`Google Error: ${errorData.error.message}`);
           continue;
         }
 
@@ -88,7 +87,7 @@ export default function SEOWizard() {
           currentDbCredits = newCount;
         }
       } catch (err) {
-        setErrorMessage("Error de conexión. Intenta de nuevo.");
+        setErrorMessage("Error de procesamiento. Intenta de nuevo.");
       }
     }
     setLoading(false);
@@ -106,12 +105,12 @@ export default function SEOWizard() {
 
       <main className="max-w-xl mx-auto text-center font-bold">
         {errorMessage && (
-          <div className="mb-6 bg-red-500/10 border border-red-500 p-4 rounded-2xl text-red-500 text-[10px]">
+          <div className="mb-6 bg-red-500/10 border border-red-500 p-4 rounded-2xl text-red-500 text-[10px] tracking-widest">
             {errorMessage}
           </div>
         )}
 
-        <div className="border-2 border-dashed border-blue-500/30 bg-blue-500/[0.02] rounded-[3rem] p-20">
+        <div className="border-2 border-dashed border-blue-500/30 bg-blue-500/[0.02] rounded-[3rem] p-20 hover:border-blue-500 transition-all">
           <label className="cursor-pointer block">
             {loading ? (
               <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto" />
