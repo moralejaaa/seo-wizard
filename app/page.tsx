@@ -1,16 +1,15 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Upload, Zap, Lock, DownloadCloud, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import JSZip from 'jszip';
+import { Upload, Zap, Loader2, CheckCircle } from 'lucide-react';
 
-// Configuración Supabase
+// Conexión Supabase
 const supabaseUrl = 'https://geixfrhlbaznjxaxpvrm.supabase.co';
 const supabaseKey = 'sb_publishable_-vedbc51MiECfsLoEDXpPg_gaxVFs5x';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Tu API Key
-const GEMINI_KEY = "AIzaSyApD4h3Pp6cOUcnwkuHywHIF5W7V9KgM6c";
+// SEGURIDAD: Ahora usamos la variable de entorno, no la llave directa
+const GEMINI_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 export default function SEOWizard() {
   const [results, setResults] = useState<any[]>([]);
@@ -29,7 +28,10 @@ export default function SEOWizard() {
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+    if (files.length === 0 || !GEMINI_KEY) {
+      if (!GEMINI_KEY) setErrorMessage("Error: No se encontró la API Key en el archivo .env.local");
+      return;
+    }
 
     setLoading(true);
     setErrorMessage(null);
@@ -44,7 +46,7 @@ export default function SEOWizard() {
           r.onload = () => res((r.result as string).split(',')[1]);
         });
 
-        // Usamos la URL que ya habilitamos en Google Cloud Console
+        // URL Estable v1beta para Gemini 2.0 Flash
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
 
         const resp = await fetch(apiUrl, {
@@ -53,11 +55,10 @@ export default function SEOWizard() {
           body: JSON.stringify({
             contents: [{
               parts: [
-                { text: "Analiza la imagen y genera un nombre de archivo SEO y un texto Alt. Responde únicamente con este formato JSON, sin markdown: {\"fileName\": \"nombre-archivo\", \"altText\": \"descripcion\"}" },
+                { text: "Analiza la imagen y genera un nombre de archivo SEO y un texto Alt. Responde estrictamente en JSON: {\"fileName\": \"nombre-seo\", \"altText\": \"descripcion\"}" },
                 { inlineData: { mimeType: file.type, data: base64Data } }
               ]
             }]
-            // Hemos quitado generationConfig para evitar el error de 'Unknown name'
           })
         });
 
@@ -71,49 +72,43 @@ export default function SEOWizard() {
         const rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
 
         if (rawText) {
-          // Limpiamos el texto por si la IA añade etiquetas ```json
           const cleanJson = rawText.replace(/```json|```/g, "").trim();
           const data = JSON.parse(cleanJson);
-          
           const newCount = currentDbCredits - 1;
-          await supabase.from('profiles').update({ usage_count: newCount }).eq('email', userEmail);
           
-          setResults(prev => [{
-            ...data,
-            id: Math.random().toString(),
-            preview: `data:${file.type};base64,${base64Data}`
-          }, ...prev]);
+          await supabase.from('profiles').update({ usage_count: newCount }).eq('email', userEmail);
+          setResults(prev => [{ ...data, id: Math.random().toString(), preview: `data:${file.type};base64,${base64Data}` }, ...prev]);
           setCredits(newCount);
           currentDbCredits = newCount;
         }
       } catch (err) {
-        setErrorMessage("Error al interpretar los datos. Intenta con otra imagen.");
+        setErrorMessage("Error al procesar la imagen. Intenta de nuevo.");
       }
     }
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-10 font-sans">
+    <div className="min-h-screen bg-black text-white p-10 font-sans uppercase">
       <nav className="max-w-4xl mx-auto flex justify-between items-center mb-10 font-black italic">
-        <h1 className="text-2xl text-blue-500 uppercase">SEO WIZARD PRO</h1>
+        <h1 className="text-2xl text-blue-500 tracking-tighter">SEO WIZARD PRO</h1>
         <div className="bg-white/10 px-4 py-2 rounded-full border border-white/20 flex items-center gap-2">
           <Zap className="w-4 h-4 text-yellow-500 fill-current" />
           <span className="text-xs">{credits} CRÉDITOS</span>
         </div>
       </nav>
 
-      <main className="max-w-xl mx-auto">
+      <main className="max-w-xl mx-auto text-center font-bold">
         {errorMessage && (
-          <div className="mb-6 bg-red-500/10 border border-red-500 p-4 rounded-2xl text-red-500 text-[10px] font-bold uppercase">
+          <div className="mb-6 bg-red-500/10 border border-red-500 p-4 rounded-2xl text-red-500 text-[10px]">
             {errorMessage}
           </div>
         )}
 
-        <div className="border-2 border-dashed border-blue-500/30 bg-blue-500/[0.02] rounded-[3rem] p-20 text-center">
+        <div className="border-2 border-dashed border-blue-500/30 bg-blue-500/[0.02] rounded-[3rem] p-20 hover:border-blue-500 transition-all">
           <label className="cursor-pointer block">
             {loading ? <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto" /> : <Upload className="w-12 h-12 text-blue-500 mx-auto mb-4" />}
-            <h2 className="text-xl font-black italic uppercase">Cargar Imágenes</h2>
+            <h2 className="text-xl italic">Cargar Imágenes</h2>
             <input type="file" className="hidden" onChange={handleUpload} accept="image/*" multiple disabled={loading} />
           </label>
         </div>
@@ -123,8 +118,8 @@ export default function SEOWizard() {
             {results.map(res => (
               <div key={res.id} className="bg-white/5 p-4 rounded-2xl flex items-center gap-4 border border-white/10">
                 <img src={res.preview} className="w-12 h-12 rounded-lg object-cover" />
-                <div className="flex-1 text-left font-bold">
-                  <p className="text-[10px] text-blue-400 uppercase truncate">{res.fileName}.jpg</p>
+                <div className="flex-1 text-left">
+                  <p className="text-[10px] text-blue-400 truncate">{res.fileName}.jpg</p>
                   <p className="text-[10px] text-gray-500 italic truncate mt-1">"{res.altText}"</p>
                 </div>
                 <CheckCircle className="w-4 h-4 text-green-500" />
