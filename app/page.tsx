@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Upload, Zap, Loader2, CheckCircle, FileSpreadsheet, FileArchive, Trash2 } from 'lucide-react';
 import JSZip from 'jszip';
+// @ts-ignore
 import { saveAs } from 'file-saver';
 
 const supabaseUrl = 'https://geixfrhlbaznjxaxpvrm.supabase.co';
@@ -88,10 +89,10 @@ export default function SEOWizard() {
       <nav className="max-w-5xl mx-auto flex justify-between items-center mb-12 py-4 border-b border-white/5">
         <h1 className="text-2xl font-black italic text-violet-500 uppercase tracking-tighter">SEO WIZARD PRO</h1>
         <div className="flex items-center gap-2">
-          <button onClick={downloadExcel} className="bg-emerald-600 px-3 py-2 rounded-xl text-[10px] font-bold uppercase flex items-center gap-1">
+          <button onClick={downloadExcel} className="bg-emerald-600 px-3 py-2 rounded-xl text-[10px] font-bold uppercase flex items-center gap-1 shadow-lg shadow-emerald-900/20">
             <FileSpreadsheet className="w-3 h-3" /> EXCEL
           </button>
-          <button onClick={downloadZIP} className="bg-violet-600 px-3 py-2 rounded-xl text-[10px] font-bold uppercase flex items-center gap-1">
+          <button onClick={downloadZIP} className="bg-violet-600 px-3 py-2 rounded-xl text-[10px] font-bold uppercase flex items-center gap-1 shadow-lg shadow-violet-900/20">
             <FileArchive className="w-3 h-3" /> ZIP
           </button>
           <div className="bg-violet-500/10 px-3 py-2 rounded-full border border-violet-500/30 flex items-center gap-2">
@@ -101,18 +102,18 @@ export default function SEOWizard() {
         </div>
       </nav>
 
-      <main className="max-w-xl mx-auto text-center">
-        <div className="border-2 border-dashed border-violet-500/20 bg-black rounded-[2rem] p-16 hover:border-violet-500 transition-all mb-8">
+      <main className="max-w-xl mx-auto">
+        <div className="border-2 border-dashed border-violet-500/20 bg-black rounded-[2rem] p-16 text-center hover:border-violet-500 transition-all mb-8">
           <label className="cursor-pointer block">
             {loading ? <Loader2 className="w-10 h-10 text-violet-500 animate-spin mx-auto" /> : <Upload className="w-10 h-10 text-violet-500 mx-auto mb-4" />}
-            <h2 className="text-lg font-bold uppercase tracking-tight">Cargar Imágenes</h2>
+            <h2 className="text-lg font-bold uppercase">Cargar Imágenes</h2>
             <input type="file" className="hidden" onChange={handleUpload} accept="image/*" multiple disabled={loading} />
           </label>
         </div>
 
         <div className="space-y-3">
           {results.map(res => (
-            <div key={res.id} className="bg-white/[0.03] p-4 rounded-2xl flex items-center gap-4 border border-white/5">
+            <div key={res.id} className="bg-white/[0.03] p-4 rounded-2xl flex items-center gap-4 border border-white/5 animate-in fade-in">
               <img src={res.preview} className="w-12 h-12 rounded-lg object-cover" />
               <div className="flex-1 text-left min-w-0">
                 <p className="text-[10px] font-bold text-violet-400 uppercase truncate">{res.fileName}.jpg</p>
