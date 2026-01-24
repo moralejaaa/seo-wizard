@@ -18,20 +18,27 @@ export default function SEOWizard() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [credits, setCredits] = useState(0);
+  const [isPro, setIsPro] = useState(false); // Estado para detectar si es usuario de pago
   const [user, setUser] = useState<any>(null);
   const [lang, setLang] = useState('en');
 
   const fetchCredits = useCallback(async (email?: string) => {
-    // Si no hay email y no hay usuario, créditos a 0 para evitar el bug
+    // Si no hay email y no hay usuario, cargamos los créditos del perfil de invitado
     if (!email && !user) {
-      const { data: guestProfile } = await supabase.from('profiles').select('usage_count').eq('email', "cliente_nuevo@test.com").maybeSingle();
-      if (guestProfile) setCredits(guestProfile.usage_count);
+      const { data: guestProfile } = await supabase.from('profiles').select('usage_count, is_pro').eq('email', "cliente_nuevo@test.com").maybeSingle();
+      if (guestProfile) {
+        setCredits(guestProfile.usage_count);
+        setIsPro(guestProfile.is_pro);
+      }
       return;
     }
     
     const targetEmail = email || user?.email;
-    const { data: profile } = await supabase.from('profiles').select('usage_count').eq('email', targetEmail).maybeSingle();
-    if (profile) setCredits(profile.usage_count);
+    const { data: profile } = await supabase.from('profiles').select('usage_count, is_pro').eq('email', targetEmail).maybeSingle();
+    if (profile) {
+      setCredits(profile.usage_count);
+      setIsPro(profile.is_pro); // Actualizamos si el usuario es PRO
+    }
   }, [user]);
 
   useEffect(() => {
@@ -44,9 +51,10 @@ export default function SEOWizard() {
         fetchCredits(session.user.email);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        setCredits(0); // FIX: Limpia créditos inmediatamente al salir
-        setResults([]); // Limpia resultados por privacidad
-        fetchCredits(); // Recarga los créditos de invitado (5)
+        setCredits(0);
+        setIsPro(false);
+        setResults([]);
+        fetchCredits(); 
       }
     });
 
@@ -55,25 +63,24 @@ export default function SEOWizard() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.reload(); // Asegura limpieza total
+    window.location.reload();
   };
 
   const t = {
     es: {
-      title: "SEO WIZARD PRO", upgrade: "Mejora a Prime",
+      title: "SEO WIZARD", upgrade: "Mejora a Prime",
       limit: "Límite alcanzado. Únete a los profesionales.",
       btn: "Entrar con Google", upload: "Subir Imágenes",
-      unlock: "Comprar Créditos Prime", status: "Plan Profesional"
+      unlock: "Comprar 100 Créditos ($12)", status: "Plan Profesional"
     },
     en: {
-      title: "SEO WIZARD PRO", upgrade: "Upgrade to Prime",
+      title: "SEO WIZARD", upgrade: "Upgrade to Prime",
       limit: "Limit reached. Join the pros for more.",
       btn: "Sign in with Google", upload: "Upload Images",
-      unlock: "Buy Prime Credits", status: "Professional Plan"
+      unlock: "Buy 100 Credits ($12)", status: "Professional Plan"
     }
   }[lang === 'es' ? 'es' : 'en'];
 
-  // ... (handleUpload y funciones de descarga se mantienen igual)
   const handleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -125,25 +132,27 @@ export default function SEOWizard() {
     <div className="min-h-screen bg-[#050505] text-white p-4 md:p-6 font-sans selection:bg-violet-500/30">
       <nav className="max-w-5xl mx-auto flex justify-between items-center mb-12 py-6">
         <div className="flex items-center gap-2 group cursor-pointer">
-           <div className="bg-violet-600 p-2 rounded-xl group-hover:rotate-12 transition-transform">
+           <div className={`${isPro ? 'bg-yellow-500' : 'bg-violet-600'} p-2 rounded-xl group-hover:rotate-12 transition-transform shadow-lg`}>
              <Globe className="w-6 h-6 text-white" />
            </div>
-           <h1 className="text-xl md:text-2xl font-black italic uppercase tracking-tighter">SEO<span className="text-violet-500">WIZARD</span></h1>
+           <h1 className="text-xl md:text-2xl font-black italic uppercase tracking-tighter">
+             SEO<span className={isPro ? "text-yellow-500" : "text-violet-500"}>WIZARD {isPro && "PRO"}</span>
+           </h1>
         </div>
         
         <div className="flex items-center gap-3">
           {user && (
-            <div className="flex items-center gap-2 bg-gradient-to-r from-violet-500/20 to-transparent pr-4 pl-1 py-1 rounded-full border border-violet-500/30 shadow-[0_0_15px_rgba(139,92,246,0.1)]">
-              <img src={user.user_metadata.avatar_url} className="w-7 h-7 rounded-full border-2 border-violet-500" alt="profile" />
+            <div className={`flex items-center gap-2 pr-4 pl-1 py-1 rounded-full border shadow-xl ${isPro ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-violet-500/20 border-violet-500/30'}`}>
+              <img src={user.user_metadata.avatar_url} className={`w-7 h-7 rounded-full border-2 ${isPro ? 'border-yellow-500' : 'border-violet-500'}`} alt="profile" />
               <div className="flex flex-col">
                 <span className="text-[10px] font-black leading-none">{user.user_metadata.full_name.split(' ')[0]}</span>
-                {credits > 5 && <span className="text-[8px] text-violet-400 font-bold uppercase flex items-center gap-1"><Star className="w-2 h-2 fill-current" /> Prime</span>}
+                {isPro && <span className="text-[8px] text-yellow-500 font-bold uppercase flex items-center gap-1"><Star className="w-2 h-2 fill-current" /> Prime</span>}
               </div>
             </div>
           )}
           
           <div className="bg-black px-4 py-2 rounded-2xl border border-white/10 flex items-center gap-2 shadow-xl">
-            <Zap className="w-4 h-4 text-yellow-500 fill-current animate-pulse" />
+            <Zap className={`w-4 h-4 fill-current animate-pulse ${isPro ? 'text-yellow-500' : 'text-violet-400'}`} />
             <span className="text-sm font-black italic">{credits}</span>
           </div>
 
@@ -169,16 +178,20 @@ export default function SEOWizard() {
                   <LogIn className="w-5 h-5" /> {t.btn}
                 </button>
               ) : (
-                <button className="bg-violet-600 p-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-violet-500 hover:shadow-[0_0_30px_rgba(139,92,246,0.4)] transition-all uppercase italic tracking-tighter">
+                <a 
+                  href={`https://seowizardpro.lemonsqueezy.com/checkout/buy/44e5b340-22c4-4239-b030-5643ac426544?checkout[email]=${user?.email}`}
+                  target="_blank"
+                  className="bg-violet-600 p-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-violet-500 hover:shadow-[0_0_30px_rgba(139,92,246,0.4)] transition-all uppercase italic tracking-tighter w-full"
+                >
                   <Star className="w-5 h-5 fill-current" /> {t.unlock}
-                </button>
+                </a>
               )}
             </div>
           </div>
         )}
 
         <div className={`transition-all duration-700 ${credits <= 0 ? 'opacity-10 blur-sm grayscale pointer-events-none' : 'opacity-100'}`}>
-          <div className="bg-gradient-to-b from-white/[0.05] to-transparent border-2 border-dashed border-white/10 rounded-[3rem] p-16 text-center hover:border-violet-500/50 transition-all mb-12 cursor-pointer group">
+          <div className={`bg-gradient-to-b from-white/[0.05] to-transparent border-2 border-dashed rounded-[3rem] p-16 text-center transition-all mb-12 cursor-pointer group ${isPro ? 'border-yellow-500/30 hover:border-yellow-500/60' : 'border-white/10 hover:border-violet-500/50'}`}>
             <label className="cursor-pointer block">
               {loading ? (
                 <div className="flex flex-col items-center gap-4">
@@ -187,8 +200,8 @@ export default function SEOWizard() {
                 </div>
               ) : (
                 <>
-                  <div className="bg-white/5 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:bg-violet-500 transition-all duration-500 shadow-xl">
-                    <Upload className="w-8 h-8 text-white" />
+                  <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all duration-500 shadow-xl ${isPro ? 'bg-yellow-500 text-black' : 'bg-white/5 text-white group-hover:bg-violet-500'}`}>
+                    <Upload className="w-8 h-8" />
                   </div>
                   <h2 className="text-xl font-black uppercase tracking-widest italic">{t.upload}</h2>
                   <p className="text-gray-500 text-[10px] mt-2 font-bold uppercase tracking-[0.2em]">JPG, PNG or WEBP up to 10MB</p>
@@ -199,7 +212,6 @@ export default function SEOWizard() {
           </div>
         </div>
 
-        {/* ... (Sección de resultados mejorada estéticamente) */}
         <div className="space-y-6">
           {results.map(res => (
             <div key={res.id} className="bg-white/[0.03] p-5 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-6 border border-white/5 hover:border-white/10 transition-all shadow-xl group">
@@ -211,7 +223,7 @@ export default function SEOWizard() {
               </div>
               <div className="flex-1 text-left">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-violet-500/20 text-violet-400 text-[9px] font-black px-2 py-0.5 rounded-md tracking-tighter uppercase italic border border-violet-500/20">SEO Optimized</span>
+                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-md tracking-tighter uppercase italic border ${isPro ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20' : 'bg-violet-500/20 text-violet-400 border-violet-500/20'}`}>SEO Optimized</span>
                   <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate">{res.fileName}.jpg</span>
                 </div>
                 <p className="text-[14px] text-gray-300 italic leading-relaxed font-medium">"{res.altText}"</p>
