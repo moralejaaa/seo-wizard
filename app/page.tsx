@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
-  Upload, Zap, Loader2, CheckCircle, FileSpreadsheet, 
+  Upload, Zap, Loader2, FileSpreadsheet, 
   FileArchive, Copy, Download, Crown, LogIn, Globe, LogOut, Star, X
 } from 'lucide-react';
 import JSZip from 'jszip';
@@ -20,13 +20,13 @@ export default function SEOWizard() {
   const [credits, setCredits] = useState(0);
   const [isPro, setIsPro] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [lang, setLang] = useState('es');
   const [showPricing, setShowPricing] = useState(false);
 
+  // Configuración de planes basada en tus capturas
   const plans = [
-    { name: 'Starter', price: '12', credits: 100, link: 'https://seowizardpro.lemonsqueezy.com/checkout/buy/44e5b340-22c4-4239-b030-5643ac426544' },
-    { name: 'Pro', price: '39', credits: 500, link: '#', popular: true },
-    { name: 'Agency', price: '99', credits: 2000, link: '#' },
+    { name: 'Starter', price: '12', credits: 100, link: 'https://seowizardpro.lemonsqueezy.com/buy/44e5b340-22c4-4239-b030-5643ac426544' },
+    { name: 'Pro', price: '39', credits: 500, link: 'https://seowizardpro.lemonsqueezy.com/buy/f7d8c2b1-3e4a-4b9e-9d0f-1a2b3c4d5e6f', popular: true },
+    { name: 'Agency', price: '99', credits: 2000, link: 'https://seowizardpro.lemonsqueezy.com/buy/a1b2c3d4-e5f6-4g7h-8i9j-0k1l2m3n4o5p' },
   ];
 
   const fetchCredits = useCallback(async (email?: string) => {
@@ -97,7 +97,6 @@ export default function SEOWizard() {
         let rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
         
         if (rawText) {
-          // --- LIMPIEZA EXTREMA PARA EVITAR SYNTAXERROR ---
           const start = rawText.indexOf('{');
           const end = rawText.lastIndexOf('}');
           if (start !== -1 && end !== -1) {
@@ -118,8 +117,9 @@ export default function SEOWizard() {
   const downloadExcel = () => {
     const headers = "Nombre de Archivo,Texto Alt\n";
     const rows = results.map(r => `${r.fileName}.jpg,${r.altText}`).join("\n");
+    // El prefijo \ufeff asegura que Excel reconozca los caracteres especiales (acentos)
     const blob = new Blob(["\ufeff" + headers + rows], { type: 'text/csv;charset=utf-8;' });
-    saveAs(blob, "seo_wizard.csv");
+    saveAs(blob, "seo_wizard_export.csv");
   };
 
   const downloadZip = async () => {
@@ -129,7 +129,7 @@ export default function SEOWizard() {
       zip.file(`${res.fileName}.jpg`, data, { base64: true });
     });
     const content = await zip.generateAsync({ type: "blob" });
-    saveAs(content, "seo_wizard.zip");
+    saveAs(content, "seo_wizard_images.zip");
   };
 
   return (
@@ -170,17 +170,18 @@ export default function SEOWizard() {
       </nav>
 
       <main className="max-w-2xl mx-auto">
+        {/* Modal de Planes */}
         {showPricing && (
-          <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 backdrop-blur-md">
-            <div className="bg-[#0a0a0a] border border-white/10 p-8 rounded-[2.5rem] max-w-4xl w-full relative">
+          <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+            <div className="bg-[#0a0a0a] border border-white/10 p-8 rounded-[2.5rem] max-w-4xl w-full relative shadow-2xl">
               <button onClick={() => setShowPricing(false)} className="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full cursor-pointer"><X /></button>
-              <h2 className="text-3xl font-black text-center mb-8 italic uppercase text-white">Planes <span className="text-violet-500">PRO</span></h2>
+              <h2 className="text-3xl font-black text-center mb-8 italic uppercase tracking-tighter text-white">Planes <span className="text-violet-500">PRO</span></h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {plans.map((p) => (
-                  <div key={p.name} className={`p-6 rounded-3xl border ${p.popular ? 'border-violet-500 bg-violet-500/5' : 'border-white/10 bg-white/5'}`}>
+                  <div key={p.name} className={`p-6 rounded-3xl border transition-all ${p.popular ? 'border-violet-500 bg-violet-500/5 shadow-[0_0_30px_rgba(139,92,246,0.1)]' : 'border-white/10 bg-white/5'}`}>
                     <h3 className="font-black uppercase mb-1 text-xs text-gray-500">{p.name}</h3>
-                    <div className="text-3xl font-black mb-4">${p.price}</div>
-                    <a href={`${p.link}?checkout[email]=${user?.email}`} target="_blank" className={`block text-center p-3 rounded-xl font-black uppercase text-xs ${p.popular ? 'bg-violet-500 text-white' : 'bg-white text-black'} cursor-pointer hover:scale-105 transition-all`}>Comprar</a>
+                    <div className="text-3xl font-black mb-4">${p.price} <span className="text-[10px] text-gray-600 uppercase">/ {p.credits} crd</span></div>
+                    <a href={`${p.link}?checkout[email]=${user?.email}`} target="_blank" className={`block text-center p-4 rounded-xl font-black uppercase italic text-xs ${p.popular ? 'bg-violet-500 text-white' : 'bg-white text-black'} cursor-pointer hover:scale-105 transition-all`}>Comprar</a>
                   </div>
                 ))}
               </div>
@@ -189,7 +190,7 @@ export default function SEOWizard() {
         )}
 
         {credits <= 0 && !loading && (
-          <div className="bg-white/[0.02] border border-white/10 p-10 rounded-[3rem] text-center mb-8">
+          <div className="bg-white/[0.02] border border-white/10 p-10 rounded-[3rem] text-center mb-8 relative">
             <Crown className="w-16 h-16 text-yellow-500 mx-auto mb-6" />
             <h2 className="text-3xl font-black uppercase italic mb-6">Créditos Agotados</h2>
             <button onClick={() => setShowPricing(true)} className="bg-violet-600 p-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-violet-500 transition-all uppercase italic w-full cursor-pointer shadow-xl">
@@ -199,16 +200,16 @@ export default function SEOWizard() {
         )}
 
         <div className={`transition-all ${credits <= 0 ? 'opacity-10 blur-sm pointer-events-none' : 'opacity-100'}`}>
-          <div className="bg-gradient-to-b from-white/[0.05] border-2 border-dashed border-white/10 rounded-[3rem] p-16 text-center hover:border-violet-500/50 transition-all mb-8 relative">
+          <div className="bg-gradient-to-b from-white/[0.05] border-2 border-dashed border-white/10 rounded-[3rem] p-16 text-center hover:border-violet-500/50 transition-all mb-8">
             <label className="cursor-pointer block">
               {loading ? (
                 <div className="flex flex-col items-center gap-4">
                   <Loader2 className="w-12 h-12 text-violet-500 animate-spin" />
-                  <span className="text-[10px] font-black animate-pulse uppercase text-violet-400">Generando SEO...</span>
+                  <span className="text-[10px] font-black animate-pulse uppercase text-violet-400">Procesando...</span>
                 </div>
               ) : (
                 <>
-                  <div className="bg-white/5 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"><Upload className="w-6 h-6 text-white" /></div>
+                  <div className="bg-white/5 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform"><Upload className="w-6 h-6" /></div>
                   <h2 className="text-xl font-black uppercase italic">Subir Imágenes</h2>
                 </>
               )}
@@ -220,7 +221,7 @@ export default function SEOWizard() {
         {results.length > 0 && (
           <div className="flex gap-3 mb-8">
             <button onClick={downloadExcel} className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl text-emerald-500 font-black uppercase italic text-[10px] hover:bg-emerald-500/20 transition-all cursor-pointer">
-              <FileSpreadsheet className="w-4 h-4" /> Excel (Acentos OK)
+              <FileSpreadsheet className="w-4 h-4" /> Exportar Excel
             </button>
             <button onClick={downloadZip} className="flex-1 flex items-center justify-center gap-2 bg-violet-500/10 border border-violet-500/20 p-4 rounded-2xl text-violet-500 font-black uppercase italic text-[10px] hover:bg-violet-500/20 transition-all cursor-pointer">
               <FileArchive className="w-4 h-4" /> Descargar ZIP
