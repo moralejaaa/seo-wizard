@@ -3,16 +3,31 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
   Upload, Zap, Loader2, FileSpreadsheet, 
-  FileArchive, Copy, Download, Crown, LogIn, Globe, LogOut, Star, X, Check, ImageIcon
+  FileArchive, Copy, Download, Crown, LogIn, Globe, LogOut, Star, X, Check, ImageIcon, Trash2
 } from 'lucide-react';
 import JSZip from 'jszip';
 // @ts-ignore
 import { saveAs } from 'file-saver';
+import { openDB } from 'idb';
 
 const supabaseUrl = 'https://geixfrhlbaznjxaxpvrm.supabase.co';
 const supabaseKey = 'sb_publishable_-vedbc51MiECfsLoEDXpPg_gaxVFs5x';
 const supabase = createClient(supabaseUrl, supabaseKey);
 const GEMINI_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+
+// Configuración de la Base de Datos Local (IndexedDB)
+const DB_NAME = 'SEO_WIZARD_STORAGE';
+const STORE_NAME = 'results_cache';
+
+const initDB = async () => {
+  return openDB(DB_NAME, 1, {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+    },
+  });
+};
 
 export default function SEOWizard() {
   const [results, setResults] = useState<any[]>([]);
@@ -25,30 +40,40 @@ export default function SEOWizard() {
 
   const plans = [
     { 
-      name: 'Starter', 
-      price: '12', 
-      credits: 100, 
+      name: 'Starter', price: '12', credits: 100, 
       link: 'https://seowizardpro.lemonsqueezy.com/checkout/buy/44e5b340-22c4-4239-b030-5643ac426544',
       features: ['100 Créditos IA', 'Alt Text Preciso', 'Exportar Excel', 'Descarga ZIP']
     },
     { 
-      name: 'Pro', 
-      price: '39', 
-      credits: 500, 
+      name: 'Pro', price: '39', credits: 500, 
       link: 'https://seowizardpro.lemonsqueezy.com/checkout/buy/7c975822-06e8-403c-b5d9-f56056e84146', 
-      popular: true,
-      save: 'Ahorra 35%',
+      popular: true, save: 'Ahorra 35%',
       features: ['500 Créditos IA', 'Soporte Prioritario', 'Análisis Ultra-Rápido', 'Uso Comercial']
     },
     { 
-      name: 'Agency', 
-      price: '99', 
-      credits: 2000, 
+      name: 'Agency', price: '99', credits: 2000, 
       link: 'https://seowizardpro.lemonsqueezy.com/checkout/buy/19b7494c-0519-4a1c-9428-440711d48a24',
       save: 'Mejor Valor',
       features: ['2,000 Créditos IA', 'Licencia Multisitio', 'Acceso API Beta', 'Soporte 24/7']
     },
   ];
+
+  // PERSISTENCIA: Cargar datos de IndexedDB al iniciar
+  useEffect(() => {
+    const loadPersistedData = async () => {
+      try {
+        const db = await initDB();
+        const savedResults = await db.getAll(STORE_NAME);
+        if (savedResults && savedResults.length > 0) {
+          // Los ordenamos por ID (tiempo) para que el más nuevo salga arriba
+          setResults(savedResults.sort((a, b) => b.id - a.id));
+        }
+      } catch (e) {
+        console.error("Error cargando IndexedDB", e);
+      }
+    };
+    loadPersistedData();
+  }, []);
 
   const fetchCredits = useCallback(async (email: string) => {
     try {
@@ -75,6 +100,8 @@ export default function SEOWizard() {
         setCredits(0);
         setIsPro(false);
         setResults([]);
+        // Al cerrar sesión limpiamos la DB local por seguridad
+        initDB().then(db => db.clear(STORE_NAME));
       }
     });
     return () => subscription.unsubscribe();
@@ -88,6 +115,8 @@ export default function SEOWizard() {
   };
 
   const handleLogout = async () => {
+    const db = await initDB();
+    await db.clear(STORE_NAME);
     await supabase.auth.signOut();
     window.location.reload();
   };
@@ -99,6 +128,7 @@ export default function SEOWizard() {
     setSelectedCount(files.length);
     setLoading(true);
     let currentDbCredits = credits;
+    const db = await initDB();
 
     for (const file of files) {
       if (currentDbCredits <= 0) break;
@@ -107,6 +137,7 @@ export default function SEOWizard() {
           const reader = new FileReader(); reader.readAsDataURL(file);
           reader.onload = () => res((reader.result as string).split(',')[1]);
         });
+        
         const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
         const resp = await fetch(apiUrl, {
           method: 'POST',
@@ -118,6 +149,7 @@ export default function SEOWizard() {
             ]}]
           })
         });
+
         const resJson = await resp.json();
         let rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
         
@@ -127,8 +159,19 @@ export default function SEOWizard() {
           if (start !== -1 && end !== -1) {
             const data = JSON.parse(rawText.substring(start, end + 1));
             const newCount = currentDbCredits - 1;
+            
             await supabase.from('profiles').update({ usage_count: newCount }).eq('email', user.email);
-            setResults(prev => [{ ...data, id: Math.random().toString(), preview: `data:${file.type};base64,${base64Data}` }, ...prev]);
+            
+            const newItem = { 
+              ...data, 
+              id: Date.now() + Math.random(), 
+              preview: `data:${file.type};base64,${base64Data}` 
+            };
+
+            // GUARDAR EN INDEXEDDB (Persistente y con espacio)
+            await db.put(STORE_NAME, newItem);
+            
+            setResults(prev => [newItem, ...prev]);
             setCredits(newCount);
             currentDbCredits = newCount;
           }
@@ -157,6 +200,14 @@ export default function SEOWizard() {
     saveAs(content, "seo_wizard_images.zip");
   };
 
+  const clearResults = async () => {
+    if(confirm("¿Seguro que quieres borrar todos los resultados actuales?")) {
+      const db = await initDB();
+      await db.clear(STORE_NAME);
+      setResults([]);
+    }
+  };
+
   return (
     <div className={`min-h-screen text-white p-4 md:p-6 font-sans transition-colors duration-700 ${isPro ? 'bg-[#080700]' : 'bg-[#050505]'}`}>
       <nav className="max-w-5xl mx-auto flex justify-between items-center mb-8 py-6">
@@ -170,18 +221,15 @@ export default function SEOWizard() {
         </div>
         
         <div className="flex items-center gap-3">
-          {/* LOGIN SOLO SI NO HAY USUARIO */}
-          {!user && (
+          {!user ? (
             <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-200 transition-all active:scale-95">
               <LogIn className="w-4 h-4" /> Entrar con Google
             </button>
-          )}
-
-          {user && (
+          ) : (
             <>
               <div className={`flex items-center gap-2 pr-4 pl-1 py-1 rounded-full border transition-all ${isPro ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-violet-500/20 border-violet-500/30'}`}>
                 <img src={user.user_metadata.avatar_url} className={`w-7 h-7 rounded-full border-2 ${isPro ? 'border-yellow-500' : 'border-violet-500'}`} alt="profile" />
-                <span className="text-[10px] font-black">{user.user_metadata.full_name.split(' ')[0]}</span>
+                <span className="text-[10px] font-black">{user.user_metadata.full_name?.split(' ')[0]}</span>
               </div>
               <div onClick={() => setShowPricing(true)} style={{ cursor: 'pointer' }} className="bg-black px-4 py-2 rounded-2xl border border-white/10 flex items-center gap-2 hover:border-violet-500 transition-all">
                 <Zap className={`w-4 h-4 fill-current ${isPro ? 'text-yellow-500' : 'text-violet-400'}`} />
@@ -209,7 +257,6 @@ export default function SEOWizard() {
           </div>
         ) : (
           <>
-            {/* PRICING MODAL */}
             {showPricing && (
               <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
                 <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-10 rounded-[2.5rem] max-w-5xl w-full relative my-8 shadow-2xl">
@@ -237,7 +284,7 @@ export default function SEOWizard() {
               </div>
             )}
 
-            {/* CRÉDITOS AGOTADOS */}
+            {/* SIEMPRE ACTIVO: El área de carga solo se bloquea visualmente si no hay créditos, pero el botón de login y UI principal siempre están */}
             {credits <= 0 && !loading && (
               <div className="bg-white/[0.02] border border-white/10 p-10 rounded-[3rem] text-center mb-8 animate-in fade-in zoom-in duration-500">
                 <Crown className="w-16 h-16 text-yellow-500 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)] animate-bounce" />
@@ -248,7 +295,6 @@ export default function SEOWizard() {
               </div>
             )}
 
-            {/* ZONA DE CARGA */}
             <div className={`transition-all duration-500 ${credits <= 0 ? 'opacity-10 blur-sm pointer-events-none scale-95' : 'opacity-100'} ${results.length > 0 ? 'mb-4' : 'mb-8'}`}>
               <div className={`bg-gradient-to-b from-white/[0.05] border-2 border-dashed border-white/10 rounded-[3rem] text-center hover:border-violet-500 transition-all group overflow-hidden ${results.length > 0 ? 'p-6' : 'p-16'}`}>
                 <label style={{ cursor: loading ? 'wait' : 'pointer' }} className="block">
@@ -278,10 +324,12 @@ export default function SEOWizard() {
               </div>
             </div>
 
-            {/* BOTONES ACCIÓN (SOLO SI HAY RESULTADOS) */}
             {results.length > 0 && (
               <>
                 <div className="flex gap-3 mb-8 animate-in slide-in-from-top-2 duration-500">
+                  <button onClick={clearResults} style={{ cursor: 'pointer' }} className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl hover:bg-red-500/20 transition-all">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                   <button onClick={downloadExcel} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl text-emerald-500 font-black uppercase italic text-[10px] hover:bg-emerald-500/20 transition-all">
                     <FileSpreadsheet className="w-4 h-4" /> Exportar CSV
                   </button>
@@ -290,7 +338,6 @@ export default function SEOWizard() {
                   </button>
                 </div>
 
-                {/* LISTA DE RESULTADOS */}
                 <div className="space-y-4 pb-24">
                   {results.map(res => (
                     <div key={res.id} className="bg-white/[0.03] p-5 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-6 border border-white/5 hover:border-white/10 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500">
