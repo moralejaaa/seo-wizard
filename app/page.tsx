@@ -49,7 +49,6 @@ export default function SEOWizard() {
     },
   ];
 
-  // FUNCIÓN ACTUALIZADA: Gestiona créditos de bienvenida
   const fetchCredits = useCallback(async (email: string) => {
     try {
       const { data: profile } = await supabase.from('profiles').select('usage_count, is_pro').eq('email', email).maybeSingle();
@@ -57,7 +56,6 @@ export default function SEOWizard() {
         setCredits(profile.usage_count);
         setIsPro(profile.is_pro);
       } else {
-        // REGALO: 5 créditos gratis al registrarse por primera vez
         const { data: newProfile } = await supabase.from('profiles').insert([
           { email: email, usage_count: 5, is_pro: false }
         ]).select().single();
@@ -167,11 +165,11 @@ export default function SEOWizard() {
         </div>
         
         <div className="flex items-center gap-3">
-          {!user ? (
-            <button onClick={handleLogin} className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-xl font-bold text-sm cursor-pointer hover:bg-gray-200 transition-all active:scale-95">
-              <LogIn className="w-4 h-4" /> Entrar con Google
-            </button>
-          ) : (
+          <button onClick={handleLogin} className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-xl font-bold text-sm cursor-pointer hover:bg-gray-200 transition-all active:scale-95">
+            <LogIn className="w-4 h-4" /> Entrar con Google
+          </button>
+
+          {user && (
             <>
               <div className={`flex items-center gap-2 pr-4 pl-1 py-1 rounded-full border ${isPro ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-violet-500/20 border-violet-500/30'}`}>
                 <img src={user.user_metadata.avatar_url} className={`w-7 h-7 rounded-full border-2 ${isPro ? 'border-yellow-500' : 'border-violet-500'}`} alt="profile" />
@@ -191,7 +189,6 @@ export default function SEOWizard() {
 
       <main className="max-w-2xl mx-auto">
         {!user ? (
-          /* VISTA PARA USUARIOS NO LOGUEADOS */
           <div className="bg-white/[0.02] border border-white/10 p-12 rounded-[3rem] text-center shadow-2xl mt-10">
             <div className="bg-violet-500/10 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6">
               <Globe className="w-10 h-10 text-violet-500 animate-pulse" />
@@ -203,7 +200,6 @@ export default function SEOWizard() {
             </button>
           </div>
         ) : (
-          /* VISTA PARA USUARIOS LOGUEADOS */
           <>
             {showPricing && (
               <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
@@ -211,7 +207,7 @@ export default function SEOWizard() {
                   <button onClick={() => setShowPricing(false)} className="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full cursor-pointer"><X /></button>
                   <div className="text-center mb-10">
                     <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white mb-2">Mejora a <span className="text-violet-500">Prime</span></h2>
-                    <p className="text-gray-500 text-sm font-medium italic">Acceso instantáneo para {user.email}</p>
+                    <p className="text-gray-500 text-sm font-medium italic">Créditos para {user.email}</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {plans.map((p) => (
@@ -228,7 +224,6 @@ export default function SEOWizard() {
                       </div>
                     ))}
                   </div>
-                  <p className="mt-8 text-center text-[10px] text-gray-600 font-bold uppercase tracking-widest italic flex items-center justify-center gap-2"><Crown className="w-3 h-3" /> Pago 100% seguro vía Lemon Squeezy</p>
                 </div>
               </div>
             )}
@@ -243,8 +238,9 @@ export default function SEOWizard() {
               </div>
             )}
 
-            <div className={`transition-all ${credits <= 0 ? 'opacity-10 blur-sm pointer-events-none' : 'opacity-100'}`}>
-              <div className="bg-gradient-to-b from-white/[0.05] border-2 border-dashed border-white/10 rounded-[3rem] p-16 text-center hover:border-violet-500/50 transition-all mb-8 group">
+            {/* ZONA DE CARGA: Se vuelve compacta cuando hay resultados */}
+            <div className={`transition-all duration-500 ${credits <= 0 ? 'opacity-10 blur-sm pointer-events-none' : 'opacity-100'} ${results.length > 0 ? 'mb-4' : 'mb-8'}`}>
+              <div className={`bg-gradient-to-b from-white/[0.05] border-2 border-dashed border-white/10 rounded-[3rem] text-center hover:border-violet-500/50 transition-all group overflow-hidden ${results.length > 0 ? 'p-6' : 'p-16'}`}>
                 <label className="cursor-pointer block">
                   {loading ? (
                     <div className="flex flex-col items-center gap-4">
@@ -252,11 +248,17 @@ export default function SEOWizard() {
                       <span className="text-[10px] font-black animate-pulse uppercase text-violet-400">Analizando Imágenes...</span>
                     </div>
                   ) : (
-                    <>
-                      <div className="bg-white/5 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:bg-violet-500/10 transition-all"><Upload className="w-6 h-6" /></div>
-                      <h2 className="text-xl font-black uppercase italic group-hover:text-violet-400 transition-colors">Subir Imágenes</h2>
-                      <p className="text-[9px] text-gray-500 mt-2 font-bold uppercase tracking-widest">Tienes {credits} créditos</p>
-                    </>
+                    <div className={`flex ${results.length > 0 ? 'flex-row items-center justify-center gap-4' : 'flex-col items-center'} transition-all`}>
+                      <div className={`bg-white/5 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-violet-500/10 transition-all ${results.length > 0 ? 'w-10 h-10' : 'w-16 h-16 mb-4'}`}>
+                        <Upload className={results.length > 0 ? 'w-4 h-4' : 'w-6 h-6'} />
+                      </div>
+                      <div className="text-center">
+                        <h2 className={`${results.length > 0 ? 'text-sm' : 'text-xl'} font-black uppercase italic group-hover:text-violet-400 transition-colors`}>
+                          {results.length > 0 ? 'Subir más Imágenes' : 'Subir Imágenes'}
+                        </h2>
+                        {results.length === 0 && <p className="text-[9px] text-gray-500 mt-2 font-bold uppercase tracking-widest">Soporta JPG, PNG y WebP</p>}
+                      </div>
+                    </div>
                   )}
                   <input type="file" className="hidden" onChange={handleUpload} accept="image/*" multiple disabled={loading || credits <= 0} />
                 </label>
@@ -264,34 +266,36 @@ export default function SEOWizard() {
             </div>
 
             {results.length > 0 && (
-              <div className="flex gap-3 mb-8">
-                <button onClick={downloadExcel} className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl text-emerald-500 font-black uppercase italic text-[10px] hover:bg-emerald-500/20 transition-all cursor-pointer">
-                  <FileSpreadsheet className="w-4 h-4" /> Exportar Excel
-                </button>
-                <button onClick={downloadZip} className="flex-1 flex items-center justify-center gap-2 bg-violet-500/10 border border-violet-500/20 p-4 rounded-2xl text-violet-500 font-black uppercase italic text-[10px] hover:bg-violet-500/20 transition-all cursor-pointer">
-                  <FileArchive className="w-4 h-4" /> Descargar ZIP
-                </button>
-              </div>
-            )}
-
-            <div className="space-y-4 pb-20">
-              {results.map(res => (
-                <div key={res.id} className="bg-white/[0.03] p-5 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-6 border border-white/5 hover:border-white/10 transition-all">
-                  <img src={res.preview} className="w-20 h-20 rounded-2xl object-cover shadow-2xl border border-white/10" />
-                  <div className="flex-1 text-left">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[8px] font-black px-2 py-0.5 rounded-md uppercase italic border ${isPro ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20' : 'bg-violet-500/20 text-violet-400 border-violet-500/20'}`}>SEO Optimized</span>
-                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">{res.fileName}.jpg</span>
-                    </div>
-                    <p className="text-[13px] text-gray-300 italic font-medium leading-tight">"{res.altText}"</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => { navigator.clipboard.writeText(res.altText); alert('Copiado!'); }} className="p-4 bg-white/5 rounded-2xl cursor-pointer hover:bg-white/10 text-gray-400 hover:text-white transition-all"><Copy className="w-4 h-4" /></button>
-                    <button onClick={() => { const l = document.createElement('a'); l.href = res.preview; l.download = `${res.fileName}.jpg`; l.click(); }} className="p-4 bg-white/5 rounded-2xl cursor-pointer hover:bg-white/10 text-gray-400 hover:text-white transition-all"><Download className="w-4 h-4" /></button>
-                  </div>
+              <>
+                <div className="flex gap-3 mb-8">
+                  <button onClick={downloadExcel} className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl text-emerald-500 font-black uppercase italic text-[10px] hover:bg-emerald-500/20 transition-all cursor-pointer">
+                    <FileSpreadsheet className="w-4 h-4" /> Exportar Excel
+                  </button>
+                  <button onClick={downloadZip} className="flex-1 flex items-center justify-center gap-2 bg-violet-500/10 border border-violet-500/20 p-4 rounded-2xl text-violet-500 font-black uppercase italic text-[10px] hover:bg-violet-500/20 transition-all cursor-pointer">
+                    <FileArchive className="w-4 h-4" /> Descargar ZIP
+                  </button>
                 </div>
-              ))}
-            </div>
+
+                <div className="space-y-4 pb-20">
+                  {results.map(res => (
+                    <div key={res.id} className="bg-white/[0.03] p-5 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-6 border border-white/5 hover:border-white/10 transition-all animate-in fade-in slide-in-from-bottom-4 duration-300">
+                      <img src={res.preview} className="w-20 h-20 rounded-2xl object-cover shadow-2xl border border-white/10" />
+                      <div className="flex-1 text-left">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`text-[8px] font-black px-2 py-0.5 rounded-md uppercase italic border ${isPro ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20' : 'bg-violet-500/20 text-violet-400 border-violet-500/20'}`}>SEO Optimized</span>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">{res.fileName}.jpg</span>
+                        </div>
+                        <p className="text-[13px] text-gray-300 italic font-medium leading-tight">"{res.altText}"</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => { navigator.clipboard.writeText(res.altText); alert('Copiado!'); }} className="p-4 bg-white/5 rounded-2xl cursor-pointer hover:bg-white/10 text-gray-400 hover:text-white transition-all"><Copy className="w-4 h-4" /></button>
+                        <button onClick={() => { const l = document.createElement('a'); l.href = res.preview; l.download = `${res.fileName}.jpg`; l.click(); }} className="p-4 bg-white/5 rounded-2xl cursor-pointer hover:bg-white/10 text-gray-400 hover:text-white transition-all"><Download className="w-4 h-4" /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </>
         )}
       </main>
