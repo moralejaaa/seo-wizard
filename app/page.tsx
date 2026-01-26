@@ -15,7 +15,6 @@ const supabaseKey = 'sb_publishable_-vedbc51MiECfsLoEDXpPg_gaxVFs5x';
 const supabase = createClient(supabaseUrl, supabaseKey);
 const GEMINI_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-// Configuración de la Base de Datos Local (IndexedDB)
 const DB_NAME = 'SEO_WIZARD_STORAGE';
 const STORE_NAME = 'results_cache';
 
@@ -58,19 +57,15 @@ export default function SEOWizard() {
     },
   ];
 
-  // PERSISTENCIA: Cargar datos de IndexedDB al iniciar
   useEffect(() => {
     const loadPersistedData = async () => {
       try {
         const db = await initDB();
         const savedResults = await db.getAll(STORE_NAME);
         if (savedResults && savedResults.length > 0) {
-          // Los ordenamos por ID (tiempo) para que el más nuevo salga arriba
           setResults(savedResults.sort((a, b) => b.id - a.id));
         }
-      } catch (e) {
-        console.error("Error cargando IndexedDB", e);
-      }
+      } catch (e) { console.error("Error cargando IndexedDB", e); }
     };
     loadPersistedData();
   }, []);
@@ -82,9 +77,7 @@ export default function SEOWizard() {
         setCredits(profile.usage_count);
         setIsPro(profile.is_pro);
       } else {
-        const { data: newProfile } = await supabase.from('profiles').insert([
-          { email: email, usage_count: 5, is_pro: false }
-        ]).select().single();
+        const { data: newProfile } = await supabase.from('profiles').insert([{ email: email, usage_count: 5, is_pro: false }]).select().single();
         if (newProfile) setCredits(5);
       }
     } catch (e) { console.error("Error fetching credits", e); }
@@ -100,7 +93,6 @@ export default function SEOWizard() {
         setCredits(0);
         setIsPro(false);
         setResults([]);
-        // Al cerrar sesión limpiamos la DB local por seguridad
         initDB().then(db => db.clear(STORE_NAME));
       }
     });
@@ -159,18 +151,9 @@ export default function SEOWizard() {
           if (start !== -1 && end !== -1) {
             const data = JSON.parse(rawText.substring(start, end + 1));
             const newCount = currentDbCredits - 1;
-            
             await supabase.from('profiles').update({ usage_count: newCount }).eq('email', user.email);
-            
-            const newItem = { 
-              ...data, 
-              id: Date.now() + Math.random(), 
-              preview: `data:${file.type};base64,${base64Data}` 
-            };
-
-            // GUARDAR EN INDEXEDDB (Persistente y con espacio)
+            const newItem = { ...data, id: Date.now() + Math.random(), preview: `data:${file.type};base64,${base64Data}` };
             await db.put(STORE_NAME, newItem);
-            
             setResults(prev => [newItem, ...prev]);
             setCredits(newCount);
             currentDbCredits = newCount;
@@ -183,33 +166,9 @@ export default function SEOWizard() {
     setSelectedCount(0);
   };
 
-  const downloadExcel = () => {
-    const headers = "Nombre de Archivo,Texto Alt\n";
-    const rows = results.map(r => `${r.fileName}.jpg,${r.altText}`).join("\n");
-    const blob = new Blob(["\ufeff" + headers + rows], { type: 'text/csv;charset=utf-8;' });
-    saveAs(blob, "seo_wizard_export.csv");
-  };
-
-  const downloadZip = async () => {
-    const zip = new JSZip();
-    results.forEach(res => {
-      const data = res.preview.split(',')[1];
-      zip.file(`${res.fileName}.jpg`, data, { base64: true });
-    });
-    const content = await zip.generateAsync({ type: "blob" });
-    saveAs(content, "seo_wizard_images.zip");
-  };
-
-  const clearResults = async () => {
-    if(confirm("¿Seguro que quieres borrar todos los resultados actuales?")) {
-      const db = await initDB();
-      await db.clear(STORE_NAME);
-      setResults([]);
-    }
-  };
-
   return (
     <div className={`min-h-screen text-white p-4 md:p-6 font-sans transition-colors duration-700 ${isPro ? 'bg-[#080700]' : 'bg-[#050505]'}`}>
+      {/* Navegación */}
       <nav className="max-w-5xl mx-auto flex justify-between items-center mb-8 py-6">
         <div className="flex items-center gap-2">
            <div className={`${isPro ? 'bg-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.4)]' : 'bg-violet-600 shadow-[0_0_20px_rgba(139,92,246,0.4)]'} p-2.5 rounded-2xl transition-all`}>
@@ -231,7 +190,7 @@ export default function SEOWizard() {
                 <img src={user.user_metadata.avatar_url} className={`w-7 h-7 rounded-full border-2 ${isPro ? 'border-yellow-500' : 'border-violet-500'}`} alt="profile" />
                 <span className="text-[10px] font-black">{user.user_metadata.full_name?.split(' ')[0]}</span>
               </div>
-              <div onClick={() => setShowPricing(true)} style={{ cursor: 'pointer' }} className="bg-black px-4 py-2 rounded-2xl border border-white/10 flex items-center gap-2 hover:border-violet-500 transition-all">
+              <div onClick={() => setShowPricing(true)} style={{ cursor: 'pointer' }} className="bg-black px-4 py-2 rounded-2xl border border-white/10 flex items-center gap-2 hover:border-violet-500 transition-all shadow-lg">
                 <Zap className={`w-4 h-4 fill-current ${isPro ? 'text-yellow-500' : 'text-violet-400'}`} />
                 <span className="text-sm font-black">{credits}</span>
               </div>
@@ -250,13 +209,14 @@ export default function SEOWizard() {
               <Globe className="w-10 h-10 text-violet-500 animate-pulse" />
             </div>
             <h2 className="text-3xl font-black uppercase italic mb-4 tracking-tighter leading-tight">Optimización SEO masiva<br/>con Inteligencia Artificial</h2>
-            <p className="text-gray-400 mb-8 text-sm italic">Genera Alt Text precisos y renombra tus archivos en segundos. <br/>Obtén 5 créditos gratis al iniciar.</p>
+            <p className="text-gray-400 mb-8 text-sm italic">Obtén 5 créditos gratis al iniciar.</p>
             <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="w-full bg-white text-black p-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-gray-200 transition-all uppercase italic shadow-xl active:scale-95">
               <LogIn className="w-6 h-6" /> Empezar con Google
             </button>
           </div>
         ) : (
           <>
+            {/* Modal de Precios */}
             {showPricing && (
               <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto">
                 <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-10 rounded-[2.5rem] max-w-5xl w-full relative my-8 shadow-2xl">
@@ -284,18 +244,19 @@ export default function SEOWizard() {
               </div>
             )}
 
-            {/* SIEMPRE ACTIVO: El área de carga solo se bloquea visualmente si no hay créditos, pero el botón de login y UI principal siempre están */}
+            {/* Aviso de Créditos Agotados (Solo si es 0) */}
             {credits <= 0 && !loading && (
-              <div className="bg-white/[0.02] border border-white/10 p-10 rounded-[3rem] text-center mb-8 animate-in fade-in zoom-in duration-500">
-                <Crown className="w-16 h-16 text-yellow-500 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)] animate-bounce" />
-                <h2 className="text-3xl font-black uppercase italic mb-6 tracking-tighter">Sin créditos</h2>
-                <button onClick={() => setShowPricing(true)} style={{ cursor: 'pointer' }} className="bg-violet-600 p-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-violet-500 transition-all uppercase italic w-full shadow-xl shadow-violet-600/20 group">
-                  <Star className="w-5 h-5 fill-current group-hover:rotate-45 transition-transform" /> Recargar Créditos Prime
+              <div className="bg-red-500/5 border border-red-500/20 p-8 rounded-[3rem] text-center mb-8 animate-in fade-in zoom-in duration-500">
+                <Crown className="w-12 h-12 text-red-500/50 mx-auto mb-4" />
+                <h2 className="text-xl font-black uppercase italic mb-4 tracking-tighter">Has agotado tus créditos</h2>
+                <button onClick={() => setShowPricing(true)} style={{ cursor: 'pointer' }} className="bg-white text-black p-4 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-gray-200 transition-all uppercase italic w-full shadow-xl active:scale-95">
+                  <Star className="w-4 h-4 fill-current" /> Recargar ahora
                 </button>
               </div>
             )}
 
-            <div className={`transition-all duration-500 ${credits <= 0 ? 'opacity-10 blur-sm pointer-events-none scale-95' : 'opacity-100'} ${results.length > 0 ? 'mb-4' : 'mb-8'}`}>
+            {/* Área de Carga */}
+            <div className={`transition-all duration-500 ${credits <= 0 ? 'opacity-20 blur-sm pointer-events-none scale-95' : 'opacity-100'} ${results.length > 0 ? 'mb-4' : 'mb-6'}`}>
               <div className={`bg-gradient-to-b from-white/[0.05] border-2 border-dashed border-white/10 rounded-[3rem] text-center hover:border-violet-500 transition-all group overflow-hidden ${results.length > 0 ? 'p-6' : 'p-16'}`}>
                 <label style={{ cursor: loading ? 'wait' : 'pointer' }} className="block">
                   {loading ? (
@@ -304,18 +265,17 @@ export default function SEOWizard() {
                         <Loader2 className="w-12 h-12 text-violet-500 animate-spin" />
                         <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black">{selectedCount}</span>
                       </div>
-                      <span className="text-[10px] font-black animate-pulse uppercase text-violet-400">Procesando {selectedCount} imágenes restantes...</span>
+                      <span className="text-[10px] font-black animate-pulse uppercase text-violet-400 tracking-widest">Analizando imágenes...</span>
                     </div>
                   ) : (
                     <div className={`flex ${results.length > 0 ? 'flex-row items-center justify-center gap-4' : 'flex-col items-center'} transition-all`}>
                       <div className={`bg-white/5 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-violet-500 transition-all ${results.length > 0 ? 'w-10 h-10' : 'w-16 h-16 mb-4'}`}>
-                        {selectedCount > 0 ? <ImageIcon className="w-6 h-6 animate-bounce" /> : <Upload className={results.length > 0 ? 'w-4 h-4' : 'w-6 h-6'} />}
+                        <Upload className={results.length > 0 ? 'w-4 h-4' : 'w-6 h-6'} />
                       </div>
                       <div className="text-center">
                         <h2 className={`${results.length > 0 ? 'text-sm' : 'text-xl'} font-black uppercase italic group-hover:text-violet-400 transition-colors tracking-tighter`}>
-                          {results.length > 0 ? 'Añadir más imágenes' : 'Seleccionar archivos'}
+                          {results.length > 0 ? 'Añadir más fotos' : 'Subir imágenes para SEO'}
                         </h2>
-                        {results.length === 0 && <p className="text-[9px] text-gray-500 mt-2 font-bold uppercase tracking-widest">Optimización instantánea</p>}
                       </div>
                     </div>
                   )}
@@ -324,23 +284,50 @@ export default function SEOWizard() {
               </div>
             </div>
 
+            {/* BOTÓN PRIME SIEMPRE VISIBLE (Si tiene créditos) */}
+            {credits > 0 && (
+              <div className="flex justify-center mb-8">
+                <button 
+                  onClick={() => setShowPricing(true)} 
+                  style={{ cursor: 'pointer' }}
+                  className="group flex items-center gap-2 text-[10px] font-black uppercase italic tracking-[0.2em] text-gray-500 hover:text-yellow-500 transition-all"
+                >
+                  <Crown className="w-3 h-3 group-hover:animate-bounce" /> Obtener más créditos Prime
+                </button>
+              </div>
+            )}
+
+            {/* Acciones masivas y Resultados */}
             {results.length > 0 && (
               <>
                 <div className="flex gap-3 mb-8 animate-in slide-in-from-top-2 duration-500">
                   <button onClick={clearResults} style={{ cursor: 'pointer' }} className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl hover:bg-red-500/20 transition-all">
                     <Trash2 className="w-4 h-4" />
                   </button>
-                  <button onClick={downloadExcel} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl text-emerald-500 font-black uppercase italic text-[10px] hover:bg-emerald-500/20 transition-all">
+                  <button onClick={async () => {
+                    const headers = "Nombre de Archivo,Texto Alt\n";
+                    const rows = results.map(r => `${r.fileName}.jpg,${r.altText}`).join("\n");
+                    const blob = new Blob(["\ufeff" + headers + rows], { type: 'text/csv;charset=utf-8;' });
+                    saveAs(blob, "seo_wizard_export.csv");
+                  }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl text-emerald-500 font-black uppercase italic text-[10px] hover:bg-emerald-500/20 transition-all">
                     <FileSpreadsheet className="w-4 h-4" /> Exportar CSV
                   </button>
-                  <button onClick={downloadZip} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-violet-500/10 border border-violet-500/20 p-4 rounded-2xl text-violet-500 font-black uppercase italic text-[10px] hover:bg-violet-500/20 transition-all">
+                  <button onClick={async () => {
+                    const zip = new JSZip();
+                    results.forEach(res => {
+                      const data = res.preview.split(',')[1];
+                      zip.file(`${res.fileName}.jpg`, data, { base64: true });
+                    });
+                    const content = await zip.generateAsync({ type: "blob" });
+                    saveAs(content, "seo_wizard_images.zip");
+                  }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-violet-500/10 border border-violet-500/20 p-4 rounded-2xl text-violet-500 font-black uppercase italic text-[10px] hover:bg-violet-500/20 transition-all">
                     <FileArchive className="w-4 h-4" /> Descargar ZIP
                   </button>
                 </div>
 
                 <div className="space-y-4 pb-24">
                   {results.map(res => (
-                    <div key={res.id} className="bg-white/[0.03] p-5 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-6 border border-white/5 hover:border-white/10 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div key={res.id} className="bg-white/[0.03] p-5 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-6 border border-white/5 hover:border-white/10 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-xl">
                       <img src={res.preview} className="w-20 h-20 rounded-2xl object-cover shadow-2xl border border-white/10" alt="Preview" />
                       <div className="flex-1 text-left min-w-0">
                         <div className="flex items-center gap-2 mb-1">
