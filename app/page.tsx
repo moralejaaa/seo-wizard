@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
-  Upload, Zap, Loader2, FileSpreadsheet, 
-  FileArchive, Copy, Download, Crown, LogIn, Globe, LogOut, Star, X, Check, ImageIcon, Trash2, Languages, MousePointer2
+  Upload, Zap, FileSpreadsheet, FileArchive, Copy, Download, 
+  Crown, LogIn, Globe, LogOut, Star, X, Check, Trash2, Languages
 } from 'lucide-react';
 import JSZip from 'jszip';
 // @ts-ignore
@@ -217,35 +217,35 @@ export default function SEOWizard() {
   };
 
   return (
-    <div className={`min-h-screen text-white p-4 md:p-8 transition-all duration-1000 ${isPro ? 'bg-[#0a0900]' : 'bg-[#050505]'} selection:bg-violet-500/30`}>
-      <nav className="max-w-6xl mx-auto flex justify-between items-center mb-12 py-6 relative z-50">
-        <div className="flex items-center gap-3 group">
-           <div className={`p-3 rounded-2xl transition-all duration-500 group-hover:rotate-12 ${isPro ? 'bg-yellow-500 shadow-lg shadow-yellow-500/20' : 'bg-violet-600 shadow-lg shadow-violet-600/20'}`}>
-             <Globe className="w-6 h-6 text-white" />
+    <div className={`min-h-screen text-white p-4 md:p-6 transition-all duration-1000 ${isPro ? 'bg-[#0a0900]' : 'bg-[#050505]'} selection:bg-violet-500/30 overflow-x-hidden`}>
+      <nav className="max-w-6xl mx-auto flex justify-between items-center mb-4 py-4 relative z-50">
+        <div className="flex items-center gap-2 group">
+           <div className={`p-2 rounded-xl transition-all duration-500 group-hover:rotate-12 ${isPro ? 'bg-yellow-500' : 'bg-violet-600'}`}>
+             <Globe className="w-5 h-5 text-white" />
            </div>
-           <h1 className="text-2xl font-black italic uppercase tracking-tighter">
+           <h1 className="text-xl font-black italic uppercase tracking-tighter">
              SEO<span className={isPro ? "text-yellow-500" : "text-violet-500"}>WIZARD {isPro && "PRO"}</span>
            </h1>
         </div>
         
-        <div className="flex items-center gap-4">
-          <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-[10px] font-black uppercase italic tracking-widest">
-            <Languages className="w-3 h-3" /> {lang === 'es' ? 'English' : 'Español'}
+        <div className="flex items-center gap-3">
+          <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase italic hover:bg-white/10 transition-all">
+            <Languages className="w-3 h-3" /> {lang === 'es' ? 'EN' : 'ES'}
           </button>
 
           {!user ? (
-            <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="flex items-center gap-3 bg-white text-black px-6 py-3 rounded-2xl font-black text-sm hover:scale-105 transition-all active:scale-95 shadow-xl shadow-white/5 uppercase italic">
-              <LogIn className="w-4 h-4" /> {t[lang].signIn}
+            <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-xl font-black text-xs hover:scale-105 transition-all uppercase italic shadow-lg">
+              <LogIn className="w-3.5 h-3.5" /> {t[lang].signIn}
             </button>
           ) : (
-            <div className="flex items-center gap-3 bg-white/5 p-1.5 pr-4 rounded-2xl border border-white/10 backdrop-blur-md">
-              <img src={user.user_metadata.avatar_url} className={`w-9 h-9 rounded-xl border-2 ${isPro ? 'border-yellow-500' : 'border-violet-500'}`} alt="avatar" />
-              <div onClick={() => setShowPricing(true)} className="cursor-pointer flex items-center gap-2 px-2">
+            <div className="flex items-center gap-2 bg-white/5 p-1 pr-3 rounded-xl border border-white/10 backdrop-blur-md">
+              <img src={user.user_metadata.avatar_url} className={`w-8 h-8 rounded-lg border-2 ${isPro ? 'border-yellow-500' : 'border-violet-500'}`} alt="avatar" />
+              <div onClick={() => setShowPricing(true)} className="cursor-pointer flex items-center gap-1.5 px-1">
                 <Zap className={`w-3 h-3 ${isPro ? 'text-yellow-500 fill-yellow-500' : 'text-violet-400'}`} />
-                <span className="text-sm font-black">{credits}</span>
+                <span className="text-xs font-black">{credits}</span>
               </div>
-              <button onClick={handleLogout} style={{ cursor: 'pointer' }} className="ml-2 p-2 hover:bg-red-500/10 rounded-lg text-red-500/50 hover:text-red-500 transition-all">
-                <LogOut className="w-4 h-4" />
+              <button onClick={handleLogout} style={{ cursor: 'pointer' }} className="p-1.5 hover:bg-red-500/10 rounded-lg text-red-500/40 hover:text-red-500 transition-all">
+                <LogOut className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
@@ -254,36 +254,36 @@ export default function SEOWizard() {
 
       <main className="max-w-4xl mx-auto relative z-10">
         {!user ? (
-          <div className="bg-gradient-to-b from-white/[0.03] to-transparent border border-white/10 p-16 md:p-24 rounded-[4rem] text-center shadow-2xl mt-12 relative overflow-hidden">
-            <Globe className="w-20 h-20 text-violet-500 mx-auto mb-8 animate-pulse" />
-            <h2 className="text-5xl md:text-7xl font-black uppercase italic mb-6 tracking-tighter leading-none">{t[lang].heroTitle}</h2>
-            <p className="text-gray-400 text-lg font-medium italic mb-12 max-w-md mx-auto">{t[lang].heroSub}</p>
-            <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="w-full max-w-sm mx-auto bg-white text-black p-6 rounded-[2rem] font-black flex items-center justify-center gap-4 hover:scale-105 uppercase italic active:scale-95 transition-all text-xl shadow-2xl shadow-white/10">
-              <LogIn className="w-6 h-6" /> {t[lang].signIn}
+          <div className="bg-gradient-to-b from-white/[0.03] to-transparent border border-white/10 p-10 md:p-14 rounded-[3rem] text-center shadow-2xl mt-4 relative overflow-hidden">
+            <Globe className="w-16 h-16 text-violet-500 mx-auto mb-6 animate-pulse" />
+            <h2 className="text-4xl md:text-6xl font-black uppercase italic mb-4 tracking-tighter leading-tight">{t[lang].heroTitle}</h2>
+            <p className="text-gray-400 text-base md:text-lg font-medium italic mb-10 max-w-md mx-auto">{t[lang].heroSub}</p>
+            <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="w-full max-w-sm mx-auto bg-white text-black p-5 rounded-[1.5rem] font-black flex items-center justify-center gap-3 hover:scale-105 uppercase italic transition-all text-lg shadow-xl shadow-white/5">
+              <LogIn className="w-5 h-5" /> {t[lang].signIn}
             </button>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {showPricing && (
-              <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-6 backdrop-blur-2xl overflow-y-auto">
-                <div className="bg-[#0a0a0a] border border-white/10 p-8 md:p-16 rounded-[4rem] max-w-6xl w-full relative my-12">
-                  <button onClick={() => setShowPricing(false)} style={{ cursor: 'pointer' }} className="absolute top-10 right-10 p-4 hover:bg-white/5 rounded-full transition-all border border-white/5"><X className="w-6 h-6" /></button>
-                  <div className="text-center mb-16">
-                    <h2 className="text-5xl font-black italic uppercase mb-4 tracking-tighter">{t[lang].pricingTitle} <span className="text-violet-500">Prime</span></h2>
-                    <span className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-gray-500 text-xs font-black italic">{user.email}</span>
+              <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-2xl overflow-y-auto">
+                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-12 rounded-[3rem] max-w-5xl w-full relative my-8">
+                  <button onClick={() => setShowPricing(false)} style={{ cursor: 'pointer' }} className="absolute top-6 right-6 p-3 hover:bg-white/5 rounded-full transition-all border border-white/5"><X className="w-5 h-5" /></button>
+                  <div className="text-center mb-10">
+                    <h2 className="text-3xl md:text-4xl font-black italic uppercase mb-2 tracking-tighter">{t[lang].pricingTitle} <span className="text-violet-500">Prime</span></h2>
+                    <span className="text-[10px] text-gray-500 font-bold uppercase">{user.email}</span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {plans.map((p) => (
-                      <div key={p.name} className={`relative flex flex-col p-10 rounded-[3.5rem] border transition-all duration-700 ${p.popular ? 'border-violet-500 bg-violet-500/5 scale-105' : 'border-white/5 bg-white/[0.01]'}`}>
-                        {p.save && <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-violet-600 text-[10px] font-black px-5 py-2 rounded-full uppercase tracking-widest shadow-xl">{p.save}</span>}
-                        <h3 className="font-black uppercase mb-2 text-xs text-gray-500 tracking-widest">{p.name}</h3>
-                        <div className="text-5xl font-black mb-10 tracking-tighter">${p.price} <span className="text-xs text-gray-600">/ {p.credits} crd</span></div>
-                        <ul className="space-y-6 mb-12 flex-1">
+                      <div key={p.name} className={`relative flex flex-col p-8 rounded-[2.5rem] border transition-all duration-700 ${p.popular ? 'border-violet-500 bg-violet-500/5 scale-105' : 'border-white/5 bg-white/[0.01]'}`}>
+                        {p.save && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">{p.save}</span>}
+                        <h3 className="font-black uppercase mb-1 text-[10px] text-gray-500 tracking-widest">{p.name}</h3>
+                        <div className="text-4xl font-black mb-8 tracking-tighter">${p.price} <span className="text-[10px] text-gray-600">/ {p.credits} crd</span></div>
+                        <ul className="space-y-4 mb-8 flex-1">
                           {p.features.map(f => (
-                            <li key={f} className="flex items-center gap-4 text-sm font-bold text-gray-400 italic"><Check className="w-5 h-5 text-violet-500" /> {f}</li>
+                            <li key={f} className="flex items-center gap-3 text-xs font-bold text-gray-400 italic"><Check className="w-4 h-4 text-violet-500" /> {f}</li>
                           ))}
                         </ul>
-                        <a href={`${p.link}?checkout[email]=${user?.email}`} target="_blank" rel="noopener noreferrer" style={{ cursor: 'pointer' }} className={`block text-center p-6 rounded-[2rem] font-black uppercase italic text-sm transition-all ${p.popular ? 'bg-violet-500 text-white hover:bg-violet-400 shadow-xl shadow-violet-500/20' : 'bg-white text-black hover:bg-gray-200'}`}>{t[lang].selectPlan}</a>
+                        <a href={`${p.link}?checkout[email]=${user?.email}`} target="_blank" rel="noopener noreferrer" style={{ cursor: 'pointer' }} className={`block text-center p-5 rounded-2xl font-black uppercase italic text-xs transition-all ${p.popular ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/20' : 'bg-white text-black hover:bg-gray-200'}`}>{t[lang].selectPlan}</a>
                       </div>
                     ))}
                   </div>
@@ -291,36 +291,25 @@ export default function SEOWizard() {
               </div>
             )}
 
-            {credits <= 0 && !loading && (
-              <div className="bg-red-500/5 border border-red-500/10 p-10 rounded-[3rem] text-center mb-10">
-                <Crown className="w-12 h-12 text-red-500/40 mx-auto mb-4" />
-                <h2 className="text-xl font-black uppercase italic mb-6">{t[lang].outOfCredits}</h2>
-                <button onClick={() => setShowPricing(true)} style={{ cursor: 'pointer' }} className="bg-white text-black p-5 rounded-2xl font-black flex items-center justify-center gap-3 mx-auto hover:scale-105 transition-all uppercase italic">
-                  <Star className="w-5 h-5 fill-current" /> {t[lang].recharge}
-                </button>
-              </div>
-            )}
-
-            <div className={`transition-all duration-700 ${credits <= 0 ? 'opacity-20 blur-sm pointer-events-none' : 'opacity-100'}`}>
-              <label className={`block relative overflow-hidden group border-2 border-dashed rounded-[3.5rem] transition-all duration-500 bg-white/[0.02] ${loading ? 'border-violet-500/50 p-12 cursor-wait' : 'border-white/10 hover:border-violet-500/40 p-16 cursor-pointer'}`}>
+            <div className={`transition-all duration-700 ${credits <= 0 && !loading ? 'opacity-40 blur-[1px]' : 'opacity-100'}`}>
+              <label className={`block relative overflow-hidden group border-2 border-dashed rounded-[2.5rem] transition-all duration-500 bg-white/[0.02] ${loading ? 'border-violet-500/50 p-10 cursor-wait' : 'border-white/10 hover:border-violet-500/40 p-12 cursor-pointer'}`}>
                 {loading ? (
-                  <div className="flex flex-col items-center gap-6">
+                  <div className="flex flex-col items-center gap-4">
                     <div className="relative">
-                      <div className="w-20 h-20 border-4 border-violet-500/20 border-t-violet-500 rounded-full animate-spin"></div>
-                      <span className="absolute inset-0 flex items-center justify-center text-sm font-black italic">{selectedCount}</span>
+                      <div className="w-16 h-16 border-4 border-violet-500/20 border-t-violet-500 rounded-full animate-spin"></div>
+                      <span className="absolute inset-0 flex items-center justify-center text-xs font-black italic">{selectedCount}</span>
                     </div>
-                    <span className="text-sm font-black uppercase tracking-widest text-violet-400 animate-pulse">{t[lang].analyzing}</span>
+                    <span className="text-xs font-black uppercase tracking-widest text-violet-400 animate-pulse">{t[lang].analyzing}</span>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-6">
-                    <div className="w-24 h-24 bg-white/5 rounded-[2.5rem] flex items-center justify-center group-hover:scale-110 group-hover:bg-violet-600 transition-all shadow-2xl border border-white/5">
-                      <Upload className="w-8 h-8" />
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-20 h-20 bg-white/5 rounded-[2rem] flex items-center justify-center group-hover:scale-110 group-hover:bg-violet-600 transition-all shadow-xl border border-white/5">
+                      <Upload className="w-7 h-7" />
                     </div>
                     <div className="text-center">
-                      <h2 className="text-3xl font-black uppercase italic group-hover:text-violet-400 tracking-tighter">
+                      <h2 className="text-2xl font-black uppercase italic group-hover:text-violet-400 tracking-tighter">
                         {results.length > 0 ? t[lang].uploadMore : t[lang].uploadTitle}
                       </h2>
-                      <p className="text-gray-500 font-bold italic text-sm mt-2 opacity-60">JPG • PNG • WEBP</p>
                     </div>
                   </div>
                 )}
@@ -328,48 +317,60 @@ export default function SEOWizard() {
               </label>
             </div>
 
+            {/* BOTÓN SIEMPRE VISIBLE PARA RECARGAR CRÉDITOS */}
+            <div className="flex justify-center mt-4">
+              <button 
+                onClick={() => setShowPricing(true)} 
+                style={{ cursor: 'pointer' }} 
+                className={`flex items-center gap-2 px-6 py-3 rounded-full font-black uppercase italic text-[10px] tracking-widest transition-all ${credits <= 0 ? 'bg-red-500 text-white animate-bounce' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
+              >
+                <Crown className={`w-4 h-4 ${credits <= 0 ? 'fill-white' : 'text-violet-500'}`} />
+                {credits <= 0 ? t[lang].recharge : t[lang].getPrime}
+              </button>
+            </div>
+
             {results.length > 0 && (
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <button onClick={async () => { if(confirm(t[lang].confirmDelete)) { const db = await initDB(); await db.clear(STORE_NAME); setResults([]); } }} style={{ cursor: 'pointer' }} className="p-5 bg-red-500/5 border border-red-500/10 text-red-500/60 rounded-3xl hover:bg-red-500/10 transition-all active:scale-90 shadow-lg">
+              <div className="space-y-4 pt-6">
+                <div className="flex gap-3">
+                  <button onClick={async () => { if(confirm(t[lang].confirmDelete)) { const db = await initDB(); await db.clear(STORE_NAME); setResults([]); } }} style={{ cursor: 'pointer' }} className="p-4 bg-red-500/5 border border-red-500/10 text-red-500/60 rounded-2xl hover:bg-red-500/10 transition-all active:scale-90">
                     <Trash2 className="w-5 h-5" />
                   </button>
                   <button onClick={() => {
                     const csv = "\ufeffFile,Alt Text\n" + results.map(r => `${sanitizeFileName(r.fileName)}.jpg,${r.altText}`).join("\n");
                     saveAs(new Blob([csv], { type: 'text/csv' }), "seo_export.csv");
-                  }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-3 bg-emerald-500/5 border border-emerald-500/10 p-5 rounded-3xl text-emerald-500 font-black uppercase italic text-xs hover:bg-emerald-500/10 transition-all shadow-lg">
-                    <FileSpreadsheet className="w-5 h-5" /> {t[lang].exportCsv}
+                  }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-2xl text-emerald-500 font-black uppercase italic text-[10px] hover:bg-emerald-500/10 transition-all">
+                    <FileSpreadsheet className="w-4 h-4" /> {t[lang].exportCsv}
                   </button>
                   <button onClick={async () => {
                     const zip = new JSZip();
                     results.forEach(res => zip.file(`${sanitizeFileName(res.fileName)}.jpg`, res.preview.split(',')[1], { base64: true }));
                     saveAs(await zip.generateAsync({ type: "blob" }), "seo_package.zip");
-                  }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-3 bg-violet-500/5 border border-violet-500/10 p-5 rounded-3xl text-violet-500 font-black uppercase italic text-xs hover:bg-violet-500/10 transition-all shadow-lg">
-                    <FileArchive className="w-5 h-5" /> {t[lang].downloadZip}
+                  }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-violet-500/5 border border-violet-500/10 p-4 rounded-2xl text-violet-500 font-black uppercase italic text-[10px] hover:bg-violet-500/10 transition-all">
+                    <FileArchive className="w-4 h-4" /> {t[lang].downloadZip}
                   </button>
                 </div>
 
-                <div className="grid gap-6 pb-40">
+                <div className="grid gap-4 pb-20">
                   {results.map((res) => (
-                    <div key={res.id} className="group bg-white/[0.03] p-6 rounded-[3rem] border border-white/5 flex flex-col md:flex-row items-center gap-8 hover:bg-white/[0.05] transition-all">
+                    <div key={res.id} className="group bg-white/[0.03] p-4 rounded-[2rem] border border-white/5 flex flex-col sm:flex-row items-center gap-6 hover:bg-white/[0.05] transition-all">
                       <div className="relative shrink-0">
-                        <img src={res.preview} className="w-32 h-32 rounded-[2rem] object-cover shadow-2xl border border-white/10" alt="Pr" />
-                        <div className="absolute -bottom-2 -right-2 bg-emerald-500 p-2 rounded-xl border-4 border-[#050505]">
-                          <Check className="w-3 h-3 text-white" />
+                        <img src={res.preview} className="w-24 h-24 rounded-2xl object-cover shadow-xl border border-white/10" alt="Preview" />
+                        <div className="absolute -bottom-1 -right-1 bg-emerald-500 p-1.5 rounded-lg border-2 border-[#050505]">
+                          <Check className="w-2.5 h-2.5 text-white" />
                         </div>
                       </div>
-                      <div className="flex-1 text-left min-w-0">
-                        <div className="flex items-center gap-3 mb-4">
-                          <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase italic border ${isPro ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20' : 'bg-violet-500/20 text-violet-400 border-violet-500/20'}`}>{t[lang].optimized}</span>
-                          <span className="text-[11px] font-bold text-gray-500 uppercase truncate tracking-widest">{sanitizeFileName(res.fileName)}.jpg</span>
+                      <div className="flex-1 text-center sm:text-left min-w-0">
+                        <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
+                          <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase italic border ${isPro ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20' : 'bg-violet-500/20 text-violet-400 border-violet-500/20'}`}>{t[lang].optimized}</span>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase truncate tracking-widest">{sanitizeFileName(res.fileName)}.jpg</span>
                         </div>
-                        <p className="text-xl text-white font-medium italic">"{res.altText}"</p>
+                        <p className="text-base text-white font-medium italic">"{res.altText}"</p>
                       </div>
-                      <div className="flex gap-3">
-                        <button onClick={() => { navigator.clipboard.writeText(res.altText); alert(t[lang].copyAlert); }} style={{ cursor: 'pointer' }} className="p-5 bg-white/5 rounded-2xl hover:bg-white/10 text-gray-400 transition-all active:scale-90 border border-white/5"><Copy className="w-5 h-5" /></button>
+                      <div className="flex gap-2">
+                        <button onClick={() => { navigator.clipboard.writeText(res.altText); alert(t[lang].copyAlert); }} style={{ cursor: 'pointer' }} className="p-4 bg-white/5 rounded-xl hover:bg-white/10 text-gray-400 transition-all border border-white/5"><Copy className="w-4 h-4" /></button>
                         <button onClick={() => {
                           const l = document.createElement('a'); l.href = res.preview; l.download = `${sanitizeFileName(res.fileName)}.jpg`; l.click();
-                        }} style={{ cursor: 'pointer' }} className="p-5 bg-white/5 rounded-2xl hover:bg-white/10 text-gray-400 transition-all active:scale-90 border border-white/5"><Download className="w-5 h-5" /></button>
+                        }} style={{ cursor: 'pointer' }} className="p-4 bg-white/5 rounded-xl hover:bg-white/10 text-gray-400 transition-all border border-white/5"><Download className="w-4 h-4" /></button>
                       </div>
                     </div>
                   ))}
