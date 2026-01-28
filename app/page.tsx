@@ -18,7 +18,6 @@ const GEMINI_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 const DB_NAME = 'SEO_WIZARD_STORAGE';
 const STORE_NAME = 'results_cache';
 
-// Inicialización segura de IndexedDB
 const initDB = async (): Promise<IDBPDatabase> => {
   return openDB(DB_NAME, 1, {
     upgrade(db) {
@@ -39,24 +38,15 @@ export default function SEOWizard() {
   const [selectedCount, setSelectedCount] = useState(0);
 
   const plans = [
-    { 
-      name: 'Starter', price: '12', credits: 100, 
-      link: 'https://seowizardpro.lemonsqueezy.com/checkout/buy/44e5b340-22c4-4239-b030-5643ac426544',
-      features: ['100 Créditos IA', 'Alt Text Preciso', 'Exportar Excel', 'Descarga ZIP']
-    },
-    { 
-      name: 'Pro', price: '39', credits: 500, 
-      link: 'https://seowizardpro.lemonsqueezy.com/checkout/buy/7c975822-06e8-403c-b5d9-f56056e84146', 
-      popular: true, save: 'Ahorra 35%',
-      features: ['500 Créditos IA', 'Soporte Prioritario', 'Análisis Ultra-Rápido', 'Uso Comercial']
-    },
-    { 
-      name: 'Agency', price: '99', credits: 2000, 
-      link: 'https://seowizardpro.lemonsqueezy.com/checkout/buy/19b7494c-0519-4a1c-9428-440711d48a24',
-      save: 'Mejor Valor',
-      features: ['2,000 Créditos IA', 'Licencia Multisitio', 'Acceso API Beta', 'Soporte 24/7']
-    },
+    { name: 'Starter', price: '12', credits: 100, link: 'https://seowizardpro.lemonsqueezy.com/checkout/buy/44e5b340-22c4-4239-b030-5643ac426544', features: ['100 Créditos IA', 'Alt Text Preciso', 'Exportar Excel', 'Descarga ZIP'] },
+    { name: 'Pro', price: '39', credits: 500, link: 'https://seowizardpro.lemonsqueezy.com/checkout/buy/7c975822-06e8-403c-b5d9-f56056e84146', popular: true, save: 'Ahorra 35%', features: ['500 Créditos IA', 'Soporte Prioritario', 'Análisis Ultra-Rápido', 'Uso Comercial'] },
+    { name: 'Agency', price: '99', credits: 2000, link: 'https://seowizardpro.lemonsqueezy.com/checkout/buy/19b7494c-0519-4a1c-9428-440711d48a24', save: 'Mejor Valor', features: ['2,000 Créditos IA', 'Licencia Multisitio', 'Acceso API Beta', 'Soporte 24/7'] },
   ];
+
+  // Función para limpiar el nombre del archivo y evitar el .jpg.jpg
+  const sanitizeFileName = (name: string) => {
+    return name.replace(/\.[^/.]+$/, "").trim(); // Elimina cualquier extensión existente
+  };
 
   const fetchCredits = useCallback(async (email: string) => {
     try {
@@ -64,9 +54,6 @@ export default function SEOWizard() {
       if (profile) {
         setCredits(profile.usage_count);
         setIsPro(profile.is_pro);
-      } else {
-        const { data: newProfile } = await supabase.from('profiles').insert([{ email: email, usage_count: 5, is_pro: false }]).select().single();
-        if (newProfile) setCredits(5);
       }
     } catch (e) { console.error("Error créditos:", e); }
   }, []);
@@ -88,7 +75,6 @@ export default function SEOWizard() {
       } else {
         setUser(null);
         setCredits(0);
-        setIsPro(false);
       }
     });
     return () => subscription.unsubscribe();
@@ -130,7 +116,7 @@ export default function SEOWizard() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [
-              { text: "Responde UNICAMENTE un objeto JSON: {\"fileName\": \"nombre\", \"altText\": \"descripcion\"}" },
+              { text: "Responde UNICAMENTE un objeto JSON: {\"fileName\": \"nombre_seo_amigable\", \"altText\": \"descripcion_seo\"}. El fileName NO debe incluir la extensión." },
               { inlineData: { mimeType: file.type, data: base64Data } }
             ]}]
           })
@@ -143,7 +129,14 @@ export default function SEOWizard() {
           const data = JSON.parse(rawText.substring(rawText.indexOf('{'), rawText.lastIndexOf('}') + 1));
           const newCount = currentDbCredits - 1;
           await supabase.from('profiles').update({ usage_count: newCount }).eq('email', user.email);
-          const newItem = { ...data, id: Date.now() + Math.random(), preview: `data:${file.type};base64,${base64Data}` };
+          
+          const newItem = { 
+            ...data, 
+            fileName: sanitizeFileName(data.fileName), // Limpieza extra por si la IA se equivoca
+            id: Date.now() + Math.random(), 
+            preview: `data:${file.type};base64,${base64Data}` 
+          };
+
           await db.put(STORE_NAME, newItem);
           setResults(prev => [newItem, ...prev]);
           setCredits(newCount);
@@ -279,15 +272,15 @@ export default function SEOWizard() {
                     <Trash2 className="w-4 h-4" />
                   </button>
                   <button onClick={() => {
-                    const csv = "\ufeffNombre de Archivo,Texto Alt\n" + results.map(r => `${r.fileName}.jpg,${r.altText}`).join("\n");
-                    saveAs(new Blob([csv], { type: 'text/csv' }), "export.csv");
+                    const csv = "\ufeffNombre de Archivo,Texto Alt\n" + results.map(r => `${sanitizeFileName(r.fileName)}.jpg,${r.altText}`).join("\n");
+                    saveAs(new Blob([csv], { type: 'text/csv' }), "seo_export.csv");
                   }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl text-emerald-500 font-black uppercase italic text-[10px] hover:bg-emerald-500/20 transition-all">
                     <FileSpreadsheet className="w-4 h-4" /> Exportar CSV
                   </button>
                   <button onClick={async () => {
                     const zip = new JSZip();
-                    results.forEach(res => zip.file(`${res.fileName}.jpg`, res.preview.split(',')[1], { base64: true }));
-                    saveAs(await zip.generateAsync({ type: "blob" }), "images.zip");
+                    results.forEach(res => zip.file(`${sanitizeFileName(res.fileName)}.jpg`, res.preview.split(',')[1], { base64: true }));
+                    saveAs(await zip.generateAsync({ type: "blob" }), "seo_images.zip");
                   }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-violet-500/10 border border-violet-500/20 p-4 rounded-2xl text-violet-500 font-black uppercase italic text-[10px] hover:bg-violet-500/20 transition-all">
                     <FileArchive className="w-4 h-4" /> Descargar ZIP
                   </button>
@@ -300,13 +293,18 @@ export default function SEOWizard() {
                       <div className="flex-1 text-left min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`text-[8px] font-black px-2 py-0.5 rounded-md uppercase italic border ${isPro ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20' : 'bg-violet-500/20 text-violet-400 border-violet-500/20'}`}>Optimizado</span>
-                          <span className="text-[10px] font-bold text-gray-500 uppercase truncate">{res.fileName}.jpg</span>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase truncate">{sanitizeFileName(res.fileName)}.jpg</span>
                         </div>
                         <p className="text-[13px] text-gray-300 italic font-medium leading-tight">"{res.altText}"</p>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => { navigator.clipboard.writeText(res.altText); alert('¡Copiado!'); }} style={{ cursor: 'pointer' }} className="p-4 bg-white/5 rounded-2xl hover:bg-white/10 text-gray-400 transition-all"><Copy className="w-4 h-4" /></button>
-                        <button onClick={() => { const l = document.createElement('a'); l.href = res.preview; l.download = `${res.fileName}.jpg`; l.click(); }} style={{ cursor: 'pointer' }} className="p-4 bg-white/5 rounded-2xl hover:bg-white/10 text-gray-400 transition-all"><Download className="w-4 h-4" /></button>
+                        <button onClick={() => { navigator.clipboard.writeText(res.altText); alert('¡Copiado!'); }} style={{ cursor: 'pointer' }} className="p-4 bg-white/5 rounded-2xl hover:bg-white/10 text-gray-400 transition-all active:scale-90"><Copy className="w-4 h-4" /></button>
+                        <button onClick={() => { 
+                          const link = document.createElement('a'); 
+                          link.href = res.preview; 
+                          link.download = `${sanitizeFileName(res.fileName)}.jpg`; 
+                          link.click(); 
+                        }} style={{ cursor: 'pointer' }} className="p-4 bg-white/5 rounded-2xl hover:bg-white/10 text-gray-400 transition-all active:scale-90"><Download className="w-4 h-4" /></button>
                       </div>
                     </div>
                   ))}
