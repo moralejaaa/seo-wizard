@@ -233,11 +233,11 @@ export default function SEOWizard() {
             <Languages className="w-3 h-3" /> {lang === 'es' ? 'EN' : 'ES'}
           </button>
 
-          {!user ? (
-            <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-xl font-black text-xs hover:scale-105 transition-all uppercase italic shadow-lg">
-              <LogIn className="w-3.5 h-3.5" /> {t[lang].signIn}
-            </button>
-          ) : (
+          <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-xl font-black text-xs hover:scale-105 transition-all uppercase italic shadow-lg">
+            <LogIn className="w-3.5 h-3.5" /> {t[lang].signIn}
+          </button>
+
+          {user && (
             <div className="flex items-center gap-2 bg-white/5 p-1 pr-3 rounded-xl border border-white/10 backdrop-blur-md">
               <img src={user.user_metadata.avatar_url} className={`w-8 h-8 rounded-lg border-2 ${isPro ? 'border-yellow-500' : 'border-violet-500'}`} alt="avatar" />
               <div onClick={() => setShowPricing(true)} className="cursor-pointer flex items-center gap-1.5 px-1">
@@ -267,7 +267,15 @@ export default function SEOWizard() {
             {showPricing && (
               <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-2xl overflow-y-auto">
                 <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-12 rounded-[3rem] max-w-5xl w-full relative my-8">
-                  <button onClick={() => setShowPricing(false)} style={{ cursor: 'pointer' }} className="absolute top-6 right-6 p-3 hover:bg-white/5 rounded-full transition-all border border-white/5"><X className="w-5 h-5" /></button>
+                  {/* BOTÓN X CORREGIDO: Bajado y con fondo para evitar bloqueos */}
+                  <button 
+                    onClick={() => setShowPricing(false)} 
+                    style={{ cursor: 'pointer' }} 
+                    className="absolute top-10 right-10 p-4 bg-white/10 hover:bg-white/20 rounded-full transition-all border border-white/20 z-[110]"
+                  >
+                    <X className="w-6 h-6 text-white" />
+                  </button>
+                  
                   <div className="text-center mb-10">
                     <h2 className="text-3xl md:text-4xl font-black italic uppercase mb-2 tracking-tighter">{t[lang].pricingTitle} <span className="text-violet-500">Prime</span></h2>
                     <span className="text-[10px] text-gray-500 font-bold uppercase">{user.email}</span>
@@ -317,12 +325,11 @@ export default function SEOWizard() {
               </label>
             </div>
 
-            {/* BOTÓN SIEMPRE VISIBLE PARA RECARGAR CRÉDITOS */}
             <div className="flex justify-center mt-4">
               <button 
                 onClick={() => setShowPricing(true)} 
                 style={{ cursor: 'pointer' }} 
-                className={`flex items-center gap-2 px-6 py-3 rounded-full font-black uppercase italic text-[10px] tracking-widest transition-all ${credits <= 0 ? 'bg-red-500 text-white animate-bounce' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
+                className={`flex items-center gap-2 px-6 py-3 rounded-full font-black uppercase italic text-[10px] tracking-widest transition-all ${credits <= 0 ? 'bg-red-500 text-white animate-bounce shadow-xl shadow-red-500/20' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}
               >
                 <Crown className={`w-4 h-4 ${credits <= 0 ? 'fill-white' : 'text-violet-500'}`} />
                 {credits <= 0 ? t[lang].recharge : t[lang].getPrime}
