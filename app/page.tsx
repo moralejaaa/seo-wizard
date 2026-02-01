@@ -38,7 +38,7 @@ export default function SEOWizard() {
   const [selectedCount, setSelectedCount] = useState(0);
   const [lang, setLang] = useState<'es' | 'en'>('en');
 
-  // NUEVOS ESTADOS PARA BINANCE
+  // ESTADOS BINANCE
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [binanceTxId, setBinanceTxId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,7 +61,7 @@ export default function SEOWizard() {
       optimized: "Optimized",
       copyAlert: "Copied!",
       confirmDelete: "Delete everything?",
-      pricingTitle: "Upgrade via",
+      pricingTitle: "Upgrade to",
       starter: "Starter",
       pro: "Pro",
       agency: "Agency",
@@ -71,11 +71,11 @@ export default function SEOWizard() {
       selectPlan: "Pay with Binance",
       feature1: "IA Credits",
       feature2: "Precise Alt Text",
-      binanceInstruction: "Send the USDT amount to our Binance ID and paste the Order ID below.",
+      binanceInstruction: "Scan the QR or use the ID below. Then, paste your Order ID.",
       binanceIdLabel: "Our Binance Pay ID",
-      binancePlaceholder: "Enter Transaction/Order ID",
-      binanceConfirm: "Submit Payment Info",
-      binanceSuccess: "Request sent! Credits will be added after verification."
+      binancePlaceholder: "Paste Order/Transaction ID",
+      binanceConfirm: "Inform Payment",
+      binanceSuccess: "Request sent! Credits will be added after manual verification."
     },
     es: {
       heroTitle: "Optimización SEO Masiva",
@@ -94,7 +94,7 @@ export default function SEOWizard() {
       optimized: "Optimizado",
       copyAlert: "¡Copiado!",
       confirmDelete: "¿Borrar todo?",
-      pricingTitle: "Mejora vía",
+      pricingTitle: "Mejora a",
       starter: "Starter",
       pro: "Pro",
       agency: "Agency",
@@ -104,24 +104,22 @@ export default function SEOWizard() {
       selectPlan: "Pagar con Binance",
       feature1: "Créditos IA",
       feature2: "Alt Text Preciso",
-      binanceInstruction: "Envía el monto en USDT a nuestro Binance ID y pega el ID de Orden abajo.",
+      binanceInstruction: "Escanea el QR o usa el ID. Luego pega el ID de Orden de tu pago.",
       binanceIdLabel: "Nuestro Binance Pay ID",
-      binancePlaceholder: "Pega el ID de Transacción aquí",
+      binancePlaceholder: "Pega el ID de Transacción",
       binanceConfirm: "Informar Pago",
-      binanceSuccess: "¡Solicitud enviada! Los créditos se activarán tras verificar."
+      binanceSuccess: "¡Enviado! Los créditos se activarán tras verificar el pago."
     }
   };
 
-  // Los planes ya no necesitan link de Lemon Squeezy
   const plans = [
     { name: t[lang].starter, price: '12', credits: 100, features: [t[lang].feature1, t[lang].feature2, 'Excel Export', 'ZIP Download'] },
     { name: t[lang].pro, price: '39', credits: 500, popular: true, save: `${t[lang].save} 35%`, features: [t[lang].feature1, 'Priority Support', 'Ultra-Fast Analysis', 'Commercial Use'] },
     { name: t[lang].agency, price: '99', credits: 2000, save: t[lang].bestValue, features: [t[lang].feature1, 'Multi-site License', 'API Access Beta', '24/7 Support'] },
   ];
 
-  // FUNCIÓN PARA INFORMAR PAGO A SUPABASE
   const handleBinanceSubmit = async () => {
-    if (!binanceTxId || !selectedPlan) return alert("Por favor completa los datos");
+    if (!binanceTxId || !selectedPlan) return;
     setIsSubmitting(true);
     try {
       const { error } = await supabase.from('payment_requests').insert([{
@@ -137,11 +135,8 @@ export default function SEOWizard() {
       setSelectedPlan(null);
       setBinanceTxId('');
     } catch (e) {
-      alert("Error enviando solicitud");
-      console.error(e);
-    } finally {
-      setIsSubmitting(false);
-    }
+      alert("Error al enviar");
+    } finally { setIsSubmitting(false); }
   };
 
   const sanitizeFileName = (name: string) => {
@@ -301,21 +296,19 @@ export default function SEOWizard() {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* MODAL DE PRECIOS CON BINANCE PAY */}
+            {/* MODAL PRICING BINANCE */}
             {showPricing && (
-              <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-xl">
-                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 rounded-[2.5rem] max-w-4xl w-full relative shadow-2xl">
-                  <button 
-                    onClick={() => { setShowPricing(false); setSelectedPlan(null); }} 
-                    style={{ cursor: 'pointer' }} 
-                    className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-white/20 rounded-full transition-all border border-white/10"
-                  >
+              <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-xl overflow-y-auto">
+                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 rounded-[2.5rem] max-w-4xl w-full relative my-8">
+                  <button onClick={() => { setShowPricing(false); setSelectedPlan(null); }} style={{ cursor: 'pointer' }} className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-white/20 rounded-full transition-all border border-white/10">
                     <X className="w-5 h-5 text-white/50 hover:text-white" />
                   </button>
                   
                   <div className="text-center mb-6">
-                    <h2 className="text-2xl md:text-3xl font-black italic uppercase mb-1 tracking-tighter">{t[lang].pricingTitle} <span className="text-yellow-500 flex items-center justify-center gap-2"><CreditCard className="w-6 h-6"/> Binance Pay</span></h2>
-                    <span className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">{user.email}</span>
+                    <h2 className="text-2xl md:text-3xl font-black italic uppercase mb-1 tracking-tighter">{t[lang].pricingTitle} <span className="text-yellow-500">PRIME</span></h2>
+                    <div className="flex items-center justify-center gap-2 text-[9px] text-gray-600 font-bold uppercase tracking-widest">
+                       <CreditCard className="w-3 h-3" /> Binance Pay Preferred
+                    </div>
                   </div>
                   
                   {!selectedPlan ? (
@@ -335,36 +328,42 @@ export default function SEOWizard() {
                       ))}
                     </div>
                   ) : (
-                    <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-6 rounded-[2rem] space-y-4 animate-in fade-in zoom-in duration-300">
-                        <div className="text-center">
-                           <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter mb-4">{t[lang].binanceInstruction}</p>
-                           <div className="bg-black/40 border border-yellow-500/20 p-4 rounded-xl mb-4">
+                    <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-6 rounded-[3rem] space-y-6 animate-in fade-in zoom-in duration-300">
+                        <div className="text-center space-y-4">
+                           <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">{t[lang].binanceInstruction}</p>
+                           
+                           {/* QR IMAGE INTEGRATION */}
+                           <div className="relative group mx-auto w-48 h-48 bg-white p-2 rounded-2xl overflow-hidden shadow-2xl shadow-yellow-500/10">
+                              <img src="/binance.jfif" alt="Binance QR" className="w-full h-full object-contain" />
+                           </div>
+
+                           <div className="bg-black/40 border border-yellow-500/20 p-4 rounded-2xl">
                               <span className="text-[8px] text-yellow-500 font-black uppercase block mb-1">{t[lang].binanceIdLabel}</span>
                               <div className="flex items-center justify-center gap-2">
-                                 <span className="text-xl font-mono font-black">234567890</span> {/* REEMPLAZA CON TU PAY ID */}
-                                 <button onClick={() => { navigator.clipboard.writeText('234567890'); alert('ID Copiado'); }} className="p-1 hover:bg-white/10 rounded-md transition-all"><Copy className="w-4 h-4 text-gray-500"/></button>
+                                 <span className="text-xl font-mono font-black text-white">58318589</span>
+                                 <button onClick={() => { navigator.clipboard.writeText('58318589'); alert('ID Copiado'); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-all"><Copy className="w-4 h-4 text-yellow-500"/></button>
                               </div>
                            </div>
-                           <div className="text-2xl font-black italic uppercase text-white mb-6">Total: ${selectedPlan.price} USDT</div>
+                           <div className="text-2xl font-black italic uppercase text-white">Monto: ${selectedPlan.price} USDT</div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                            <input 
                               type="text" 
                               placeholder={t[lang].binancePlaceholder}
                               value={binanceTxId}
                               onChange={(e) => setBinanceTxId(e.target.value)}
-                              className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-xs font-bold outline-none focus:border-yellow-500 transition-all"
+                              className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-xs font-bold outline-none focus:border-yellow-500 transition-all text-center"
                            />
                            <button 
                               onClick={handleBinanceSubmit}
-                              disabled={isSubmitting}
+                              disabled={isSubmitting || !binanceTxId}
                               style={{ cursor: 'pointer' }} 
-                              className="w-full bg-yellow-500 text-black p-4 rounded-xl font-black uppercase italic text-[10px] hover:bg-yellow-400 transition-all disabled:opacity-50"
+                              className="w-full bg-yellow-500 text-black p-4 rounded-2xl font-black uppercase italic text-[11px] hover:bg-yellow-400 transition-all disabled:opacity-30"
                            >
                               {isSubmitting ? "..." : t[lang].binanceConfirm}
                            </button>
-                           <button onClick={() => setSelectedPlan(null)} className="w-full text-[8px] text-gray-600 font-black uppercase hover:text-white transition-all">← Volver</button>
+                           <button onClick={() => setSelectedPlan(null)} className="w-full text-[9px] text-gray-600 font-black uppercase hover:text-white transition-all">← Cambiar Plan</button>
                         </div>
                     </div>
                   )}
@@ -373,7 +372,7 @@ export default function SEOWizard() {
             )}
 
             <div className={`transition-all duration-700 ${credits <= 0 && !loading ? 'opacity-40 blur-[1px]' : 'opacity-100'}`}>
-              <label className={`block relative overflow-hidden group border-2 border-dashed rounded-[2rem] transition-all duration-500 bg-white/[0.02] ${loading ? 'border-violet-500/50 p-8 cursor-wait' : 'border-white/10 hover:border-violet-500/40 p-10 cursor-pointer'}`}>
+              <label className={`block relative overflow-hidden group border-2 border-dashed rounded-[2.5rem] transition-all duration-500 bg-white/[0.02] ${loading ? 'border-violet-500/50 p-8 cursor-wait' : 'border-white/10 hover:border-violet-500/40 p-12 cursor-pointer'}`}>
                 {loading ? (
                   <div className="flex flex-col items-center gap-3">
                     <div className="relative">
@@ -399,11 +398,7 @@ export default function SEOWizard() {
             </div>
 
             <div className="flex justify-center mt-2">
-              <button 
-                onClick={() => setShowPricing(true)} 
-                style={{ cursor: 'pointer' }} 
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-black uppercase italic text-[9px] tracking-widest transition-all ${credits <= 0 ? 'bg-red-500 text-white animate-bounce' : 'bg-white/5 text-gray-500 border border-white/10 hover:bg-white/10'}`}
-              >
+              <button onClick={() => setShowPricing(true)} style={{ cursor: 'pointer' }} className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-black uppercase italic text-[9px] tracking-widest transition-all ${credits <= 0 ? 'bg-red-500 text-white animate-bounce shadow-lg shadow-red-500/20' : 'bg-white/5 text-gray-500 border border-white/10 hover:bg-white/10'}`}>
                 <Crown className={`w-3.5 h-3.5 ${credits <= 0 ? 'fill-white' : 'text-violet-500'}`} />
                 {credits <= 0 ? t[lang].recharge : t[lang].getPrime}
               </button>
@@ -412,7 +407,7 @@ export default function SEOWizard() {
             {results.length > 0 && (
               <div className="space-y-4 pt-4">
                 <div className="flex gap-2">
-                  <button onClick={async () => { if(confirm(t[lang].confirmDelete)) { const db = await initDB(); await db.clear(STORE_NAME); setResults([]); } }} style={{ cursor: 'pointer' }} className="p-3 bg-red-500/5 border border-red-500/10 text-red-500/60 rounded-xl hover:bg-red-500/10 transition-all active:scale-90">
+                  <button onClick={async () => { if(confirm(t[lang].confirmDelete)) { const db = await initDB(); await db.clear(STORE_NAME); setResults([]); } }} style={{ cursor: 'pointer' }} className="p-3 bg-red-500/5 border border-red-500/10 text-red-500/60 rounded-xl hover:bg-red-500/10 transition-all">
                     <Trash2 className="w-4 h-4" />
                   </button>
                   <button onClick={() => {
@@ -420,6 +415,13 @@ export default function SEOWizard() {
                     saveAs(new Blob([csv], { type: 'text/csv' }), "seo_export.csv");
                   }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/5 border border-emerald-500/10 p-3 rounded-xl text-emerald-500 font-black uppercase italic text-[9px] hover:bg-emerald-500/10 transition-all">
                     <FileSpreadsheet className="w-3.5 h-3.5" /> {t[lang].exportCsv}
+                  </button>
+                  <button onClick={async () => {
+                    const zip = new JSZip();
+                    results.forEach(res => zip.file(`${sanitizeFileName(res.fileName)}.jpg`, res.preview.split(',')[1], { base64: true }));
+                    saveAs(await zip.generateAsync({ type: "blob" }), "seo_package.zip");
+                  }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-violet-500/5 border border-violet-500/10 p-3 rounded-xl text-violet-500 font-black uppercase italic text-[9px] hover:bg-violet-500/10 transition-all">
+                    <FileArchive className="w-3.5 h-3.5" /> {t[lang].downloadZip}
                   </button>
                 </div>
 
