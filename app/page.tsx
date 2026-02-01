@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
   Upload, Zap, FileSpreadsheet, FileArchive, Copy, Download, 
-  Crown, LogIn, Globe, LogOut, Star, X, Check, Trash2, Languages, CreditCard
+  Crown, LogIn, Globe, LogOut, X, Check, Trash2, Languages, CreditCard
 } from 'lucide-react';
 import JSZip from 'jszip';
 // @ts-ignore
@@ -38,7 +38,6 @@ export default function SEOWizard() {
   const [selectedCount, setSelectedCount] = useState(0);
   const [lang, setLang] = useState<'es' | 'en'>('en');
 
-  // ESTADOS BINANCE
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [binanceTxId, setBinanceTxId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,21 +60,20 @@ export default function SEOWizard() {
       optimized: "Optimized",
       copyAlert: "Copied!",
       confirmDelete: "Delete everything?",
-      pricingTitle: "Upgrade to",
+      pricingTitle: "UPGRADE TO",
       starter: "Starter",
       pro: "Pro",
       agency: "Agency",
       popular: "Popular",
       save: "Save",
       bestValue: "Best Value",
-      selectPlan: "Pay with Binance",
+      selectPlan: "PAY WITH BINANCE",
       feature1: "IA Credits",
-      feature2: "Precise Alt Text",
-      binanceInstruction: "Scan the QR or use the ID below. Then, paste your Order ID.",
-      binanceIdLabel: "Our Binance Pay ID",
-      binancePlaceholder: "Paste Order/Transaction ID",
-      binanceConfirm: "Inform Payment",
-      binanceSuccess: "Request sent! Credits will be added after manual verification."
+      binanceInstruction: "SCAN THE QR OR USE THE ID. THEN PASTE YOUR ORDER ID.",
+      binanceIdLabel: "OUR BINANCE PAY ID",
+      binancePlaceholder: "Paste your Transaction ID",
+      binanceConfirm: "INFORM PAYMENT",
+      binanceSuccess: "Request sent! Credits will be added after verification."
     },
     es: {
       heroTitle: "Optimización SEO Masiva",
@@ -94,28 +92,27 @@ export default function SEOWizard() {
       optimized: "Optimizado",
       copyAlert: "¡Copiado!",
       confirmDelete: "¿Borrar todo?",
-      pricingTitle: "Mejora a",
+      pricingTitle: "MEJORA A",
       starter: "Starter",
       pro: "Pro",
       agency: "Agency",
       popular: "Popular",
       save: "Ahorra",
       bestValue: "Mejor Valor",
-      selectPlan: "Pagar con Binance",
+      selectPlan: "PAGAR CON BINANCE",
       feature1: "Créditos IA",
-      feature2: "Alt Text Preciso",
-      binanceInstruction: "Escanea el QR o usa el ID. Luego pega el ID de Orden de tu pago.",
-      binanceIdLabel: "Nuestro Binance Pay ID",
+      binanceInstruction: "ESCANEA EL QR O USA EL ID. LUEGO PEGA EL ID DE ORDEN DE TU PAGO.",
+      binanceIdLabel: "NUESTRO BINANCE PAY ID",
       binancePlaceholder: "Pega el ID de Transacción",
-      binanceConfirm: "Informar Pago",
+      binanceConfirm: "INFORMAR PAGO",
       binanceSuccess: "¡Enviado! Los créditos se activarán tras verificar el pago."
     }
   };
 
   const plans = [
-    { name: t[lang].starter, price: '12', credits: 100, features: [t[lang].feature1, t[lang].feature2, 'Excel Export', 'ZIP Download'] },
-    { name: t[lang].pro, price: '39', credits: 500, popular: true, save: `${t[lang].save} 35%`, features: [t[lang].feature1, 'Priority Support', 'Ultra-Fast Analysis', 'Commercial Use'] },
-    { name: t[lang].agency, price: '99', credits: 2000, save: t[lang].bestValue, features: [t[lang].feature1, 'Multi-site License', 'API Access Beta', '24/7 Support'] },
+    { name: t[lang].starter, price: '12', credits: 100, features: [`${100} ${t[lang].feature1}`, "Alt Text Preciso", "Excel Export", "ZIP Download"] },
+    { name: t[lang].pro, price: '39', credits: 500, popular: true, save: `${t[lang].save} 35%`, features: [`${500} ${t[lang].feature1}`, 'Priority Support', 'Ultra-Fast Analysis', 'Commercial Use'] },
+    { name: t[lang].agency, price: '99', credits: 2000, save: t[lang].bestValue, features: [`${2000} ${t[lang].feature1}`, 'Multi-site License', 'API Access Beta', '24/7 Support'] },
   ];
 
   const handleBinanceSubmit = async () => {
@@ -135,7 +132,7 @@ export default function SEOWizard() {
       setSelectedPlan(null);
       setBinanceTxId('');
     } catch (e) {
-      alert("Error al enviar");
+      alert("Error al enviar solicitud");
     } finally { setIsSubmitting(false); }
   };
 
@@ -265,7 +262,7 @@ export default function SEOWizard() {
             <Languages className="w-3 h-3" /> {lang === 'es' ? 'EN' : 'ES'}
           </button>
 
-          <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-xl font-black text-[10px] hover:scale-105 transition-all uppercase italic shadow-lg">
+          <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-xl font-black text-[10px] hover:scale-105 transition-all uppercase italic shadow-lg z-50">
             <LogIn className="w-3 h-3" /> {t[lang].signIn}
           </button>
 
@@ -296,55 +293,54 @@ export default function SEOWizard() {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* MODAL PRICING BINANCE */}
             {showPricing && (
               <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-xl overflow-y-auto">
-                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 rounded-[2.5rem] max-w-4xl w-full relative my-8">
-                  <button onClick={() => { setShowPricing(false); setSelectedPlan(null); }} style={{ cursor: 'pointer' }} className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-white/20 rounded-full transition-all border border-white/10">
+                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 rounded-[3rem] max-w-4xl w-full relative my-8">
+                  <button onClick={() => { setShowPricing(false); setSelectedPlan(null); }} style={{ cursor: 'pointer' }} className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/20 rounded-full transition-all border border-white/10">
                     <X className="w-5 h-5 text-white/50 hover:text-white" />
                   </button>
                   
-                  <div className="text-center mb-6">
-                    <h2 className="text-2xl md:text-3xl font-black italic uppercase mb-1 tracking-tighter">{t[lang].pricingTitle} <span className="text-yellow-500">PRIME</span></h2>
-                    <div className="flex items-center justify-center gap-2 text-[9px] text-gray-600 font-bold uppercase tracking-widest">
-                       <CreditCard className="w-3 h-3" /> Binance Pay Preferred
+                  <div className="text-center mb-8">
+                    <h2 className="text-3xl md:text-4xl font-black italic uppercase mb-1 tracking-tighter">{t[lang].pricingTitle} <span className="text-yellow-500">PRIME</span></h2>
+                    <div className="flex items-center justify-center gap-2 text-[10px] text-gray-600 font-bold uppercase tracking-widest">
+                       <CreditCard className="w-3 h-3" /> BINANCE PAY PREFERRED
                     </div>
                   </div>
                   
                   {!selectedPlan ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {plans.map((p) => (
-                        <div key={p.name} className={`relative flex flex-col p-6 rounded-[2rem] border transition-all duration-500 ${p.popular ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-white/5 bg-white/[0.01]'}`}>
-                          {p.save && <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-yellow-600 text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-widest">{p.save}</span>}
-                          <h3 className="font-black uppercase mb-1 text-[9px] text-gray-500 tracking-widest">{p.name}</h3>
-                          <div className="text-3xl font-black mb-6 tracking-tighter">${p.price} <span className="text-[9px] text-gray-600">USDT</span></div>
-                          <ul className="space-y-3 mb-6 flex-1">
+                        <div key={p.name} className={`relative flex flex-col p-8 rounded-[2.5rem] border transition-all duration-500 ${p.popular ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-white/5 bg-white/[0.01]'}`}>
+                          {p.save && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-600 text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">{p.save}</span>}
+                          <h3 className="font-black uppercase mb-1 text-[10px] text-gray-500 tracking-widest">{p.name}</h3>
+                          <div className="text-4xl font-black mb-1 tracking-tighter">${p.price} <span className="text-xs text-gray-600 font-bold uppercase">USDT</span></div>
+                          <div className="text-[10px] font-black text-yellow-500/60 uppercase mb-6">{p.credits} CREDITS</div>
+                          <ul className="space-y-4 mb-8 flex-1">
                             {p.features.map(f => (
-                              <li key={f} className="flex items-center gap-2 text-[10px] font-bold text-gray-400 italic"><Check className="w-3 h-3 text-yellow-500" /> {f}</li>
+                              <li key={f} className="flex items-center gap-3 text-[11px] font-bold text-gray-400 italic leading-none"><Check className="w-3.5 h-3.5 text-yellow-500" /> {f}</li>
                             ))}
                           </ul>
-                          <button onClick={() => setSelectedPlan(p)} style={{ cursor: 'pointer' }} className="block text-center p-3.5 rounded-xl font-black uppercase italic text-[9px] transition-all bg-yellow-500 text-black hover:bg-yellow-400">{t[lang].selectPlan}</button>
+                          <button onClick={() => setSelectedPlan(p)} style={{ cursor: 'pointer' }} className="block text-center p-4 rounded-2xl font-black uppercase italic text-[10px] transition-all bg-yellow-500 text-black hover:bg-yellow-400 shadow-xl shadow-yellow-500/10">{t[lang].selectPlan}</button>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-6 rounded-[3rem] space-y-6 animate-in fade-in zoom-in duration-300">
-                        <div className="text-center space-y-4">
-                           <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">{t[lang].binanceInstruction}</p>
+                    <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-8 rounded-[3rem] space-y-6 animate-in fade-in zoom-in duration-300">
+                        <div className="text-center space-y-6">
+                           <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter max-w-[200px] mx-auto leading-relaxed">{t[lang].binanceInstruction}</p>
                            
-                           {/* QR IMAGE INTEGRATION */}
-                           <div className="relative group mx-auto w-48 h-48 bg-white p-2 rounded-2xl overflow-hidden shadow-2xl shadow-yellow-500/10">
-                              <img src="/binance.jfif" alt="Binance QR" className="w-full h-full object-contain" />
+                           <div className="relative group mx-auto w-44 h-44 bg-white p-2 rounded-2xl shadow-2xl shadow-yellow-500/10">
+                              <img src="/binance.jfif" alt="QR" className="w-full h-full object-contain" />
                            </div>
 
-                           <div className="bg-black/40 border border-yellow-500/20 p-4 rounded-2xl">
-                              <span className="text-[8px] text-yellow-500 font-black uppercase block mb-1">{t[lang].binanceIdLabel}</span>
-                              <div className="flex items-center justify-center gap-2">
-                                 <span className="text-xl font-mono font-black text-white">58318589</span>
-                                 <button onClick={() => { navigator.clipboard.writeText('58318589'); alert('ID Copiado'); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-all"><Copy className="w-4 h-4 text-yellow-500"/></button>
+                           <div className="bg-black/40 border border-yellow-500/20 p-5 rounded-2xl relative overflow-hidden">
+                              <span className="text-[8px] text-yellow-500 font-black uppercase block mb-1 tracking-widest">{t[lang].binanceIdLabel}</span>
+                              <div className="flex items-center justify-center gap-3">
+                                 <span className="text-2xl font-mono font-black text-white">58318589</span>
+                                 <button onClick={() => { navigator.clipboard.writeText('58318589'); alert('ID Copiado'); }} className="p-2 hover:bg-white/10 rounded-xl transition-all"><Copy className="w-5 h-5 text-yellow-500"/></button>
                               </div>
                            </div>
-                           <div className="text-2xl font-black italic uppercase text-white">Monto: ${selectedPlan.price} USDT</div>
+                           <div className="text-3xl font-black italic uppercase text-white tracking-tighter">MONTO: ${selectedPlan.price} USDT</div>
                         </div>
 
                         <div className="space-y-3">
@@ -353,17 +349,17 @@ export default function SEOWizard() {
                               placeholder={t[lang].binancePlaceholder}
                               value={binanceTxId}
                               onChange={(e) => setBinanceTxId(e.target.value)}
-                              className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-xs font-bold outline-none focus:border-yellow-500 transition-all text-center"
+                              className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-xs font-bold outline-none focus:border-yellow-500 transition-all text-center tracking-widest uppercase"
                            />
                            <button 
                               onClick={handleBinanceSubmit}
                               disabled={isSubmitting || !binanceTxId}
                               style={{ cursor: 'pointer' }} 
-                              className="w-full bg-yellow-500 text-black p-4 rounded-2xl font-black uppercase italic text-[11px] hover:bg-yellow-400 transition-all disabled:opacity-30"
+                              className="w-full bg-yellow-500 text-black p-5 rounded-2xl font-black uppercase italic text-[12px] hover:bg-yellow-400 transition-all disabled:opacity-30 shadow-2xl shadow-yellow-500/10"
                            >
                               {isSubmitting ? "..." : t[lang].binanceConfirm}
                            </button>
-                           <button onClick={() => setSelectedPlan(null)} className="w-full text-[9px] text-gray-600 font-black uppercase hover:text-white transition-all">← Cambiar Plan</button>
+                           <button onClick={() => setSelectedPlan(null)} className="w-full text-[10px] text-gray-600 font-black uppercase hover:text-white transition-all tracking-widest italic">— CAMBIAR PLAN</button>
                         </div>
                     </div>
                   )}
@@ -372,22 +368,22 @@ export default function SEOWizard() {
             )}
 
             <div className={`transition-all duration-700 ${credits <= 0 && !loading ? 'opacity-40 blur-[1px]' : 'opacity-100'}`}>
-              <label className={`block relative overflow-hidden group border-2 border-dashed rounded-[2.5rem] transition-all duration-500 bg-white/[0.02] ${loading ? 'border-violet-500/50 p-8 cursor-wait' : 'border-white/10 hover:border-violet-500/40 p-12 cursor-pointer'}`}>
+              <label className={`block relative overflow-hidden group border-2 border-dashed rounded-[3rem] transition-all duration-500 bg-white/[0.02] ${loading ? 'border-violet-500/50 p-10 cursor-wait' : 'border-white/10 hover:border-violet-500/40 p-14 cursor-pointer'}`}>
                 {loading ? (
-                  <div className="flex flex-col items-center gap-3">
+                  <div className="flex flex-col items-center gap-4">
                     <div className="relative">
-                      <div className="w-12 h-12 border-4 border-violet-500/20 border-t-violet-500 rounded-full animate-spin"></div>
-                      <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black italic">{selectedCount}</span>
+                      <div className="w-14 h-14 border-4 border-violet-500/20 border-t-violet-500 rounded-full animate-spin"></div>
+                      <span className="absolute inset-0 flex items-center justify-center text-[11px] font-black italic">{selectedCount}</span>
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-violet-400 animate-pulse">{t[lang].analyzing}</span>
+                    <span className="text-[11px] font-black uppercase tracking-widest text-violet-400 animate-pulse">{t[lang].analyzing}</span>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-16 h-16 bg-white/5 rounded-[1.5rem] flex items-center justify-center group-hover:scale-110 group-hover:bg-violet-600 transition-all shadow-xl border border-white/5">
-                      <Upload className="w-6 h-6" />
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-20 h-20 bg-white/5 rounded-[2rem] flex items-center justify-center group-hover:scale-110 group-hover:bg-violet-600 transition-all shadow-2xl border border-white/5">
+                      <Upload className="w-8 h-8" />
                     </div>
                     <div className="text-center">
-                      <h2 className="text-xl font-black uppercase italic group-hover:text-violet-400 tracking-tighter">
+                      <h2 className="text-2xl font-black uppercase italic group-hover:text-violet-400 tracking-tighter">
                         {results.length > 0 ? t[lang].uploadMore : t[lang].uploadTitle}
                       </h2>
                     </div>
@@ -397,55 +393,55 @@ export default function SEOWizard() {
               </label>
             </div>
 
-            <div className="flex justify-center mt-2">
-              <button onClick={() => setShowPricing(true)} style={{ cursor: 'pointer' }} className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-black uppercase italic text-[9px] tracking-widest transition-all ${credits <= 0 ? 'bg-red-500 text-white animate-bounce shadow-lg shadow-red-500/20' : 'bg-white/5 text-gray-500 border border-white/10 hover:bg-white/10'}`}>
-                <Crown className={`w-3.5 h-3.5 ${credits <= 0 ? 'fill-white' : 'text-violet-500'}`} />
+            <div className="flex justify-center mt-4">
+              <button onClick={() => setShowPricing(true)} style={{ cursor: 'pointer' }} className={`flex items-center gap-3 px-8 py-3.5 rounded-full font-black uppercase italic text-[10px] tracking-widest transition-all ${credits <= 0 ? 'bg-red-500 text-white animate-bounce shadow-2xl shadow-red-500/30' : 'bg-white/5 text-gray-500 border border-white/10 hover:bg-white/10'}`}>
+                <Crown className={`w-4 h-4 ${credits <= 0 ? 'fill-white' : 'text-violet-500'}`} />
                 {credits <= 0 ? t[lang].recharge : t[lang].getPrime}
               </button>
             </div>
 
             {results.length > 0 && (
-              <div className="space-y-4 pt-4">
-                <div className="flex gap-2">
-                  <button onClick={async () => { if(confirm(t[lang].confirmDelete)) { const db = await initDB(); await db.clear(STORE_NAME); setResults([]); } }} style={{ cursor: 'pointer' }} className="p-3 bg-red-500/5 border border-red-500/10 text-red-500/60 rounded-xl hover:bg-red-500/10 transition-all">
-                    <Trash2 className="w-4 h-4" />
+              <div className="space-y-6 pt-6">
+                <div className="flex gap-3">
+                  <button onClick={async () => { if(confirm(t[lang].confirmDelete)) { const db = await initDB(); await db.clear(STORE_NAME); setResults([]); } }} style={{ cursor: 'pointer' }} className="p-4 bg-red-500/5 border border-red-500/10 text-red-500/60 rounded-2xl hover:bg-red-500/10 transition-all">
+                    <Trash2 className="w-5 h-5" />
                   </button>
                   <button onClick={() => {
                     const csv = "\ufeffFile,Alt Text\n" + results.map(r => `${sanitizeFileName(r.fileName)}.jpg,${r.altText}`).join("\n");
                     saveAs(new Blob([csv], { type: 'text/csv' }), "seo_export.csv");
-                  }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/5 border border-emerald-500/10 p-3 rounded-xl text-emerald-500 font-black uppercase italic text-[9px] hover:bg-emerald-500/10 transition-all">
-                    <FileSpreadsheet className="w-3.5 h-3.5" /> {t[lang].exportCsv}
+                  }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-3 bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-2xl text-emerald-500 font-black uppercase italic text-[10px] hover:bg-emerald-500/10 transition-all">
+                    <FileSpreadsheet className="w-4 h-4" /> {t[lang].exportCsv}
                   </button>
                   <button onClick={async () => {
                     const zip = new JSZip();
                     results.forEach(res => zip.file(`${sanitizeFileName(res.fileName)}.jpg`, res.preview.split(',')[1], { base64: true }));
                     saveAs(await zip.generateAsync({ type: "blob" }), "seo_package.zip");
-                  }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-2 bg-violet-500/5 border border-violet-500/10 p-3 rounded-xl text-violet-500 font-black uppercase italic text-[9px] hover:bg-violet-500/10 transition-all">
-                    <FileArchive className="w-3.5 h-3.5" /> {t[lang].downloadZip}
+                  }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-3 bg-violet-500/5 border border-violet-500/10 p-4 rounded-2xl text-violet-500 font-black uppercase italic text-[10px] hover:bg-violet-500/10 transition-all">
+                    <FileArchive className="w-4 h-4" /> {t[lang].downloadZip}
                   </button>
                 </div>
 
-                <div className="grid gap-3 pb-20">
+                <div className="grid gap-4 pb-20">
                   {results.map((res) => (
-                    <div key={res.id} className="group bg-white/[0.02] p-3 rounded-[1.5rem] border border-white/5 flex flex-col sm:flex-row items-center gap-4 hover:bg-white/[0.04] transition-all">
+                    <div key={res.id} className="group bg-white/[0.02] p-4 rounded-[2rem] border border-white/5 flex flex-col sm:row items-center gap-5 hover:bg-white/[0.04] transition-all">
                       <div className="relative shrink-0">
-                        <img src={res.preview} className="w-16 h-16 rounded-xl object-cover shadow-xl border border-white/10" alt="Preview" />
-                        <div className="absolute -bottom-1 -right-1 bg-emerald-500 p-1 rounded-md border-2 border-[#050505]">
-                          <Check className="w-2 h-2 text-white" />
+                        <img src={res.preview} className="w-20 h-20 rounded-2xl object-cover shadow-2xl border border-white/10" alt="Preview" />
+                        <div className="absolute -bottom-1 -right-1 bg-emerald-500 p-1.5 rounded-lg border-2 border-[#050505]">
+                          <Check className="w-3 h-3 text-white" />
                         </div>
                       </div>
                       <div className="flex-1 text-center sm:text-left min-w-0">
-                        <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-                          <span className={`text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase italic border ${isPro ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20' : 'bg-violet-500/20 text-violet-400 border-violet-500/20'}`}>{t[lang].optimized}</span>
-                          <span className="text-[9px] font-bold text-gray-500 uppercase truncate tracking-widest">{sanitizeFileName(res.fileName)}.jpg</span>
+                        <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
+                          <span className={`text-[8px] font-black px-2 py-1 rounded-lg uppercase italic border ${isPro ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20' : 'bg-violet-500/20 text-violet-400 border-violet-500/20'}`}>{t[lang].optimized}</span>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase truncate tracking-widest italic">{sanitizeFileName(res.fileName)}.jpg</span>
                         </div>
-                        <p className="text-sm text-white font-medium italic">"{res.altText}"</p>
+                        <p className="text-base text-white font-medium italic leading-snug">"{res.altText}"</p>
                       </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => { navigator.clipboard.writeText(res.altText); alert(t[lang].copyAlert); }} style={{ cursor: 'pointer' }} className="p-3 bg-white/5 rounded-lg hover:bg-white/10 text-gray-400 transition-all border border-white/5"><Copy className="w-3.5 h-3.5" /></button>
+                      <div className="flex gap-3">
+                        <button onClick={() => { navigator.clipboard.writeText(res.altText); alert(t[lang].copyAlert); }} style={{ cursor: 'pointer' }} className="p-4 bg-white/5 rounded-xl hover:bg-white/10 text-gray-400 transition-all border border-white/5"><Copy className="w-4 h-4" /></button>
                         <button onClick={() => {
                           const l = document.createElement('a'); l.href = res.preview; l.download = `${sanitizeFileName(res.fileName)}.jpg`; l.click();
-                        }} style={{ cursor: 'pointer' }} className="p-3 bg-white/5 rounded-lg hover:bg-white/10 text-gray-400 transition-all border border-white/5"><Download className="w-3.5 h-3.5" /></button>
+                        }} style={{ cursor: 'pointer' }} className="p-4 bg-white/5 rounded-xl hover:bg-white/10 text-gray-400 transition-all border border-white/5"><Download className="w-4 h-4" /></button>
                       </div>
                     </div>
                   ))}
