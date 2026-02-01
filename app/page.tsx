@@ -110,9 +110,9 @@ export default function SEOWizard() {
   };
 
   const plans = [
-    { name: t[lang].starter, price: '12', credits: 100, features: [`${100} ${t[lang].feature1}`, "Alt Text Preciso", "Excel Export", "ZIP Download"] },
-    { name: t[lang].pro, price: '39', credits: 500, popular: true, save: `${t[lang].save} 35%`, features: [`${500} ${t[lang].feature1}`, 'Priority Support', 'Ultra-Fast Analysis', 'Commercial Use'] },
-    { name: t[lang].agency, price: '99', credits: 2000, save: t[lang].bestValue, features: [`${2000} ${t[lang].feature1}`, 'Multi-site License', 'API Access Beta', '24/7 Support'] },
+    { name: t[lang].starter, price: '12', credits: 100, features: [`100 ${t[lang].feature1}`, "Alt Text Preciso", "Excel Export", "ZIP Download"] },
+    { name: t[lang].pro, price: '39', credits: 500, popular: true, save: `${t[lang].save} 35%`, features: [`500 ${t[lang].feature1}`, 'Priority Support', 'Ultra-Fast Analysis', 'Commercial Use'] },
+    { name: t[lang].agency, price: '99', credits: 2000, save: t[lang].bestValue, features: [`2000 ${t[lang].feature1}`, 'Multi-site License', 'API Access Beta', '24/7 Support'] },
   ];
 
   const handleBinanceSubmit = async () => {
@@ -296,8 +296,13 @@ export default function SEOWizard() {
             {showPricing && (
               <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-xl overflow-y-auto">
                 <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 rounded-[3rem] max-w-4xl w-full relative my-8">
-                  <button onClick={() => { setShowPricing(false); setSelectedPlan(null); }} style={{ cursor: 'pointer' }} className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/20 rounded-full transition-all border border-white/10">
-                    <X className="w-5 h-5 text-white/50 hover:text-white" />
+                  {/* BOTÓN X CORREGIDO */}
+                  <button 
+                    onClick={() => { setShowPricing(false); setSelectedPlan(null); }} 
+                    style={{ cursor: 'pointer' }} 
+                    className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all border border-white/10 z-[110]"
+                  >
+                    <X className="w-5 h-5 text-white" />
                   </button>
                   
                   <div className="text-center mb-8">
@@ -325,7 +330,16 @@ export default function SEOWizard() {
                       ))}
                     </div>
                   ) : (
-                    <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-8 rounded-[3rem] space-y-6 animate-in fade-in zoom-in duration-300">
+                    <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-8 rounded-[3rem] space-y-6 animate-in fade-in zoom-in duration-300 relative">
+                        {/* BOTÓN VOLVER EN QR */}
+                        <button 
+                          onClick={() => setSelectedPlan(null)} 
+                          style={{ cursor: 'pointer' }}
+                          className="absolute -top-4 -right-4 p-2 bg-white/10 rounded-full border border-white/10"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+
                         <div className="text-center space-y-6">
                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter max-w-[200px] mx-auto leading-relaxed">{t[lang].binanceInstruction}</p>
                            
@@ -359,7 +373,6 @@ export default function SEOWizard() {
                            >
                               {isSubmitting ? "..." : t[lang].binanceConfirm}
                            </button>
-                           <button onClick={() => setSelectedPlan(null)} className="w-full text-[10px] text-gray-600 font-black uppercase hover:text-white transition-all tracking-widest italic">— CAMBIAR PLAN</button>
                         </div>
                     </div>
                   )}
