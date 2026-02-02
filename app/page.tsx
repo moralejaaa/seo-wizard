@@ -294,22 +294,22 @@ export default function SEOWizard() {
         ) : (
           <div className="space-y-6">
             {showPricing && (
-              <div className="fixed inset-0 bg-black/90 z-[999] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto" onClick={() => { setShowPricing(false); setSelectedPlan(null); }}>
-                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 rounded-[3rem] max-w-4xl w-full relative my-8" onClick={(e) => e.stopPropagation()}>
+              <div className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4 backdrop-blur-xl overflow-hidden">
+                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-10 rounded-[3rem] max-w-4xl w-full relative shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in duration-300">
                   
-                  {/* BOTÓN X CORREGIDO: Ahora dentro del contenedor y con z-index alto */}
+                  {/* BOTÓN X GLOBAL PARA EL MODAL DE PRECIOS */}
                   <button 
                     onClick={() => { setShowPricing(false); setSelectedPlan(null); }} 
-                    style={{ cursor: 'pointer' }} 
-                    className="absolute top-6 right-6 p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-all border border-white/10 z-[1001]"
+                    style={{ cursor: 'pointer' }}
+                    className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-red-500 hover:text-white rounded-full transition-all border border-white/10 z-[10000] group"
                   >
-                    <X className="w-5 h-5 text-white" />
+                    <X className="w-6 h-6 text-white group-hover:scale-110" />
                   </button>
                   
-                  <div className="text-center mb-8">
+                  <div className="text-center mb-10">
                     <h2 className="text-3xl md:text-4xl font-black italic uppercase mb-1 tracking-tighter">{t[lang].pricingTitle} <span className="text-yellow-500">PRIME</span></h2>
                     <div className="flex items-center justify-center gap-2 text-[10px] text-gray-600 font-bold uppercase tracking-widest">
-                       <CreditCard className="w-3 h-3" /> BINANCE PAY PREFERRED
+                       <CreditCard className="w-3 h-3" /> BINANCE PAY ONLY
                     </div>
                   </div>
                   
@@ -331,12 +331,12 @@ export default function SEOWizard() {
                       ))}
                     </div>
                   ) : (
-                    <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-8 rounded-[3rem] space-y-6 animate-in fade-in zoom-in duration-300 relative">
-                        {/* X Interna para volver a los planes */}
+                    <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-8 rounded-[3rem] space-y-6 relative">
+                        {/* BOTÓN X PARA VOLVER ATRÁS DENTRO DEL QR */}
                         <button 
                           onClick={() => setSelectedPlan(null)} 
                           style={{ cursor: 'pointer' }}
-                          className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 transition-all z-[1002]"
+                          className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 transition-all z-[10001]"
                         >
                           <X className="w-4 h-4 text-white" />
                         </button>
@@ -344,11 +344,11 @@ export default function SEOWizard() {
                         <div className="text-center space-y-6">
                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter max-w-[200px] mx-auto leading-relaxed">{t[lang].binanceInstruction}</p>
                            
-                           <div className="relative group mx-auto w-48 h-48 bg-white p-2 rounded-2xl shadow-2xl shadow-yellow-500/10">
+                           <div className="relative mx-auto w-48 h-48 bg-white p-2 rounded-2xl shadow-2xl">
                               <img src="/binance.jfif" alt="Binance QR" className="w-full h-full object-contain" />
                            </div>
 
-                           <div className="bg-black/40 border border-yellow-500/20 p-5 rounded-2xl relative overflow-hidden">
+                           <div className="bg-black/40 border border-yellow-500/20 p-5 rounded-2xl relative">
                               <span className="text-[8px] text-yellow-500 font-black uppercase block mb-1 tracking-widest">{t[lang].binanceIdLabel}</span>
                               <div className="flex items-center justify-center gap-3">
                                  <span className="text-2xl font-mono font-black text-white">58318589</span>
