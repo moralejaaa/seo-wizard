@@ -262,16 +262,20 @@ export default function SEOWizard() {
             <Languages className="w-3 h-3" /> {lang === 'es' ? 'EN' : 'ES'}
           </button>
 
-          <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-xl font-black text-[10px] hover:scale-105 transition-all uppercase italic shadow-lg z-50">
-            <LogIn className="w-3 h-3" /> {t[lang].signIn}
-          </button>
-
-          {user && (
+          {/* CORRECCIÓN: Botón Google solo se muestra si NO hay usuario */}
+          {!user ? (
+            <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-xl font-black text-[10px] hover:scale-105 transition-all uppercase italic shadow-lg z-50">
+              <LogIn className="w-3 h-3" /> {t[lang].signIn}
+            </button>
+          ) : (
             <div className="flex items-center gap-2 bg-white/5 p-1 pr-3 rounded-xl border border-white/10 backdrop-blur-md">
               <img src={user.user_metadata.avatar_url} className={`w-7 h-7 rounded-lg border-2 ${isPro ? 'border-yellow-500' : 'border-violet-500'}`} alt="avatar" />
-              <div onClick={() => setShowPricing(true)} className="cursor-pointer flex items-center gap-1.5 px-1">
-                <Zap className={`w-3 h-3 ${isPro ? 'text-yellow-500 fill-yellow-500' : 'text-violet-400'}`} />
-                <span className="text-[10px] font-black">{credits}</span>
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black text-white/40 uppercase leading-none px-1 mb-0.5">{user.user_metadata.full_name?.split(' ')[0] || 'USER'}</span>
+                <div onClick={() => setShowPricing(true)} className="cursor-pointer flex items-center gap-1.5 px-1">
+                  <Zap className={`w-3 h-3 ${isPro ? 'text-yellow-500 fill-yellow-500' : 'text-violet-400'}`} />
+                  <span className="text-[10px] font-black">{credits}</span>
+                </div>
               </div>
               <button onClick={handleLogout} style={{ cursor: 'pointer' }} className="p-1 hover:bg-red-500/10 rounded-lg text-red-500/40 hover:text-red-500 transition-all">
                 <LogOut className="w-3 h-3" />
@@ -294,23 +298,20 @@ export default function SEOWizard() {
         ) : (
           <div className="space-y-6">
             {showPricing && (
-              <div className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4 backdrop-blur-xl overflow-hidden">
-                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-10 rounded-[3rem] max-w-4xl w-full relative shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in duration-300">
+              <div className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4 backdrop-blur-xl">
+                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-10 rounded-[3rem] max-w-4xl w-full relative shadow-2xl animate-in zoom-in duration-300 max-h-[95vh] overflow-y-auto">
                   
-                  {/* BOTÓN X GLOBAL PARA EL MODAL DE PRECIOS */}
+                  {/* BOTÓN X GLOBAL SIEMPRE VISIBLE */}
                   <button 
                     onClick={() => { setShowPricing(false); setSelectedPlan(null); }} 
                     style={{ cursor: 'pointer' }}
-                    className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-red-500 hover:text-white rounded-full transition-all border border-white/10 z-[10000] group"
+                    className="fixed md:absolute top-6 right-6 p-3 bg-white/10 hover:bg-red-500 text-white rounded-full transition-all border border-white/10 z-[10000]"
                   >
-                    <X className="w-6 h-6 text-white group-hover:scale-110" />
+                    <X className="w-6 h-6" />
                   </button>
                   
                   <div className="text-center mb-10">
-                    <h2 className="text-3xl md:text-4xl font-black italic uppercase mb-1 tracking-tighter">{t[lang].pricingTitle} <span className="text-yellow-500">PRIME</span></h2>
-                    <div className="flex items-center justify-center gap-2 text-[10px] text-gray-600 font-bold uppercase tracking-widest">
-                       <CreditCard className="w-3 h-3" /> BINANCE PAY ONLY
-                    </div>
+                    <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter">{t[lang].pricingTitle} <span className="text-yellow-500">PRIME</span></h2>
                   </div>
                   
                   {!selectedPlan ? (
@@ -331,31 +332,30 @@ export default function SEOWizard() {
                       ))}
                     </div>
                   ) : (
-                    <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-8 rounded-[3rem] space-y-6 relative">
-                        {/* BOTÓN X PARA VOLVER ATRÁS DENTRO DEL QR */}
+                    /* CORRECCIÓN: SEGUNDO MODAL (BINANCE) COMPACTADO Y CON X FUNCIONAL */
+                    <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-6 rounded-[3rem] space-y-4 relative">
                         <button 
                           onClick={() => setSelectedPlan(null)} 
                           style={{ cursor: 'pointer' }}
-                          className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 transition-all z-[10001]"
-                        >
-                          <X className="w-4 h-4 text-white" />
-                        </button>
+                          className="absolute top-4 left-4 text-[9px] font-black uppercase text-gray-500 hover:text-white flex items-center gap-1"
+                        > ← BACK </button>
 
-                        <div className="text-center space-y-6">
-                           <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter max-w-[200px] mx-auto leading-relaxed">{t[lang].binanceInstruction}</p>
+                        <div className="text-center space-y-4">
+                           <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter max-w-[200px] mx-auto leading-tight pt-4">{t[lang].binanceInstruction}</p>
                            
-                           <div className="relative mx-auto w-48 h-48 bg-white p-2 rounded-2xl shadow-2xl">
+                           {/* QR más pequeño para que no empuje el botón de informar */}
+                           <div className="relative mx-auto w-36 h-36 bg-white p-1 rounded-2xl shadow-xl">
                               <img src="/binance.jfif" alt="Binance QR" className="w-full h-full object-contain" />
                            </div>
 
-                           <div className="bg-black/40 border border-yellow-500/20 p-5 rounded-2xl relative">
+                           <div className="bg-black/40 border border-yellow-500/20 p-3 rounded-2xl">
                               <span className="text-[8px] text-yellow-500 font-black uppercase block mb-1 tracking-widest">{t[lang].binanceIdLabel}</span>
-                              <div className="flex items-center justify-center gap-3">
-                                 <span className="text-2xl font-mono font-black text-white">58318589</span>
-                                 <button onClick={() => { navigator.clipboard.writeText('58318589'); alert('ID Copiado'); }} style={{ cursor: 'pointer' }} className="p-2 hover:bg-white/10 rounded-xl transition-all"><Copy className="w-5 h-5 text-yellow-500"/></button>
+                              <div className="flex items-center justify-center gap-2">
+                                 <span className="text-xl font-mono font-black text-white">58318589</span>
+                                 <button onClick={() => { navigator.clipboard.writeText('58318589'); alert('ID Copiado'); }} style={{ cursor: 'pointer' }} className="p-1.5 hover:bg-white/10 rounded-lg transition-all"><Copy className="w-4 h-4 text-yellow-500"/></button>
                               </div>
                            </div>
-                           <div className="text-3xl font-black italic uppercase text-white tracking-tighter">MONTO: ${selectedPlan.price} USDT</div>
+                           <div className="text-2xl font-black italic uppercase text-white tracking-tighter">MONTO: ${selectedPlan.price} USDT</div>
                         </div>
 
                         <div className="space-y-3">
@@ -364,13 +364,13 @@ export default function SEOWizard() {
                               placeholder={t[lang].binancePlaceholder}
                               value={binanceTxId}
                               onChange={(e) => setBinanceTxId(e.target.value)}
-                              className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-xs font-bold outline-none focus:border-yellow-500 transition-all text-center tracking-widest uppercase"
+                              className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-xs font-bold outline-none focus:border-yellow-500 text-center uppercase tracking-widest"
                            />
                            <button 
                               onClick={handleBinanceSubmit}
                               disabled={isSubmitting || !binanceTxId}
                               style={{ cursor: 'pointer' }} 
-                              className="w-full bg-yellow-500 text-black p-5 rounded-2xl font-black uppercase italic text-[12px] hover:bg-yellow-400 transition-all disabled:opacity-30 shadow-2xl shadow-yellow-500/10"
+                              className="w-full bg-yellow-500 text-black p-5 rounded-2xl font-black uppercase italic text-[11px] hover:bg-yellow-400 transition-all disabled:opacity-30 shadow-2xl shadow-yellow-500/20"
                            >
                               {isSubmitting ? "..." : t[lang].binanceConfirm}
                            </button>
