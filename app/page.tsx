@@ -116,7 +116,7 @@ export default function SEOWizard() {
   ];
 
   const handleBinanceSubmit = async () => {
-    if (!binanceTxId || !selectedPlan) return;
+    if (!binanceTxId || !selectedPlan || !user) return;
     setIsSubmitting(true);
     try {
       const { error } = await supabase.from('payment_requests').insert([{
@@ -296,7 +296,7 @@ export default function SEOWizard() {
             {showPricing && (
               <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-xl overflow-y-auto">
                 <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 rounded-[3rem] max-w-4xl w-full relative my-8">
-                  {/* BOTÓN X CORREGIDO */}
+                  {/* BOTÓN X PARA CERRAR TODO EL MODAL */}
                   <button 
                     onClick={() => { setShowPricing(false); setSelectedPlan(null); }} 
                     style={{ cursor: 'pointer' }} 
@@ -331,27 +331,28 @@ export default function SEOWizard() {
                     </div>
                   ) : (
                     <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-8 rounded-[3rem] space-y-6 animate-in fade-in zoom-in duration-300 relative">
-                        {/* BOTÓN VOLVER EN QR */}
+                        {/* BOTÓN X INTERNO PARA EL QR - POSICIONAMIENTO CORREGIDO */}
                         <button 
                           onClick={() => setSelectedPlan(null)} 
                           style={{ cursor: 'pointer' }}
-                          className="absolute -top-4 -right-4 p-2 bg-white/10 rounded-full border border-white/10"
+                          className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 transition-all z-[120]"
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-4 h-4 text-white" />
                         </button>
 
                         <div className="text-center space-y-6">
                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter max-w-[200px] mx-auto leading-relaxed">{t[lang].binanceInstruction}</p>
                            
-                           <div className="relative group mx-auto w-44 h-44 bg-white p-2 rounded-2xl shadow-2xl shadow-yellow-500/10">
-                              <img src="/binance.jfif" alt="QR" className="w-full h-full object-contain" />
+                           {/* CONTENEDOR DEL QR */}
+                           <div className="relative group mx-auto w-48 h-48 bg-white p-2 rounded-2xl shadow-2xl shadow-yellow-500/10">
+                              <img src="/binance.jfif" alt="Binance QR" className="w-full h-full object-contain" />
                            </div>
 
                            <div className="bg-black/40 border border-yellow-500/20 p-5 rounded-2xl relative overflow-hidden">
                               <span className="text-[8px] text-yellow-500 font-black uppercase block mb-1 tracking-widest">{t[lang].binanceIdLabel}</span>
                               <div className="flex items-center justify-center gap-3">
                                  <span className="text-2xl font-mono font-black text-white">58318589</span>
-                                 <button onClick={() => { navigator.clipboard.writeText('58318589'); alert('ID Copiado'); }} className="p-2 hover:bg-white/10 rounded-xl transition-all"><Copy className="w-5 h-5 text-yellow-500"/></button>
+                                 <button onClick={() => { navigator.clipboard.writeText('58318589'); alert('ID Copiado'); }} style={{ cursor: 'pointer' }} className="p-2 hover:bg-white/10 rounded-xl transition-all"><Copy className="w-5 h-5 text-yellow-500"/></button>
                               </div>
                            </div>
                            <div className="text-3xl font-black italic uppercase text-white tracking-tighter">MONTO: ${selectedPlan.price} USDT</div>
