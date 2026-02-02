@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
   Upload, Zap, FileSpreadsheet, FileArchive, Copy, Download, 
-  Crown, LogIn, Globe, LogOut, X, Check, Trash2, Languages, CreditCard
+  Crown, LogIn, Globe, LogOut, X, Check, Trash2, Languages, ArrowLeft
 } from 'lucide-react';
 import JSZip from 'jszip';
 // @ts-ignore
@@ -42,6 +42,15 @@ export default function SEOWizard() {
   const [binanceTxId, setBinanceTxId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Efecto para quitar el scroll del body cuando el modal está abierto
+  useEffect(() => {
+    if (showPricing) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [showPricing]);
+
   const t = {
     en: {
       heroTitle: "Bulk SEO Optimization",
@@ -73,7 +82,8 @@ export default function SEOWizard() {
       binanceIdLabel: "OUR BINANCE PAY ID",
       binancePlaceholder: "Paste your Transaction ID",
       binanceConfirm: "INFORM PAYMENT",
-      binanceSuccess: "Request sent! Credits will be added after verification."
+      binanceSuccess: "Request sent! Credits will be added after verification.",
+      back: "BACK"
     },
     es: {
       heroTitle: "Optimización SEO Masiva",
@@ -105,7 +115,8 @@ export default function SEOWizard() {
       binanceIdLabel: "NUESTRO BINANCE PAY ID",
       binancePlaceholder: "Pega el ID de Transacción",
       binanceConfirm: "INFORMAR PAGO",
-      binanceSuccess: "¡Enviado! Los créditos se activarán tras verificar el pago."
+      binanceSuccess: "¡Enviado! Los créditos se activarán tras verificar el pago.",
+      back: "ATRÁS"
     }
   };
 
@@ -262,7 +273,6 @@ export default function SEOWizard() {
             <Languages className="w-3 h-3" /> {lang === 'es' ? 'EN' : 'ES'}
           </button>
 
-          {/* CORRECCIÓN: Botón Google solo se muestra si NO hay usuario */}
           {!user ? (
             <button onClick={handleLogin} style={{ cursor: 'pointer' }} className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-xl font-black text-[10px] hover:scale-105 transition-all uppercase italic shadow-lg z-50">
               <LogIn className="w-3 h-3" /> {t[lang].signIn}
@@ -297,18 +307,21 @@ export default function SEOWizard() {
           </div>
         ) : (
           <div className="space-y-6">
+            
+            {/* --- MODAL DE PRECIOS --- */}
             {showPricing && (
               <div className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4 backdrop-blur-xl">
-                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-10 rounded-[3rem] max-w-4xl w-full relative shadow-2xl animate-in zoom-in duration-300 max-h-[95vh] overflow-y-auto">
-                  
-                  {/* BOTÓN X GLOBAL SIEMPRE VISIBLE */}
-                  <button 
-                    onClick={() => { setShowPricing(false); setSelectedPlan(null); }} 
-                    style={{ cursor: 'pointer' }}
-                    className="fixed md:absolute top-6 right-6 p-3 bg-white/10 hover:bg-red-500 text-white rounded-full transition-all border border-white/10 z-[10000]"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
+                
+                {/* BOTÓN X GLOBAL: Reubicado y con alto Z-Index */}
+                <button 
+                  onClick={() => { setShowPricing(false); setSelectedPlan(null); }} 
+                  style={{ cursor: 'pointer' }}
+                  className="fixed top-8 right-8 p-3 bg-white/10 hover:bg-red-600 text-white rounded-full transition-all border border-white/20 z-[10001] shadow-2xl"
+                >
+                  <X className="w-8 h-8" />
+                </button>
+
+                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-10 rounded-[3rem] max-w-4xl w-full relative shadow-2xl animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
                   
                   <div className="text-center mb-10">
                     <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter">{t[lang].pricingTitle} <span className="text-yellow-500">PRIME</span></h2>
@@ -332,19 +345,18 @@ export default function SEOWizard() {
                       ))}
                     </div>
                   ) : (
-                    /* CORRECCIÓN: SEGUNDO MODAL (BINANCE) COMPACTADO Y CON X FUNCIONAL */
+                    /* VISTA BINANCE CON BOTÓN ATRÁS MEJORADO */
                     <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-6 rounded-[3rem] space-y-4 relative">
                         <button 
                           onClick={() => setSelectedPlan(null)} 
                           style={{ cursor: 'pointer' }}
-                          className="absolute top-4 left-4 text-[9px] font-black uppercase text-gray-500 hover:text-white flex items-center gap-1"
-                        > ← BACK </button>
+                          className="absolute top-4 left-4 text-[10px] font-black uppercase text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                        > <ArrowLeft className="w-3 h-3" /> {t[lang].back} </button>
 
                         <div className="text-center space-y-4">
-                           <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter max-w-[200px] mx-auto leading-tight pt-4">{t[lang].binanceInstruction}</p>
+                           <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter max-w-[220px] mx-auto leading-tight pt-6">{t[lang].binanceInstruction}</p>
                            
-                           {/* QR más pequeño para que no empuje el botón de informar */}
-                           <div className="relative mx-auto w-36 h-36 bg-white p-1 rounded-2xl shadow-xl">
+                           <div className="relative mx-auto w-40 h-40 bg-white p-2 rounded-2xl shadow-xl">
                               <img src="/binance.jfif" alt="Binance QR" className="w-full h-full object-contain" />
                            </div>
 
@@ -355,7 +367,7 @@ export default function SEOWizard() {
                                  <button onClick={() => { navigator.clipboard.writeText('58318589'); alert('ID Copiado'); }} style={{ cursor: 'pointer' }} className="p-1.5 hover:bg-white/10 rounded-lg transition-all"><Copy className="w-4 h-4 text-yellow-500"/></button>
                               </div>
                            </div>
-                           <div className="text-2xl font-black italic uppercase text-white tracking-tighter">MONTO: ${selectedPlan.price} USDT</div>
+                           <div className="text-2xl font-black italic uppercase text-white tracking-tighter">TOTAL: ${selectedPlan.price} USDT</div>
                         </div>
 
                         <div className="space-y-3">
