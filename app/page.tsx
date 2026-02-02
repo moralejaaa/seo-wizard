@@ -69,11 +69,11 @@ export default function SEOWizard() {
       bestValue: "Best Value",
       selectPlan: "PAY WITH BINANCE",
       feature1: "IA Credits",
-      binanceInstruction: "SCAN QR OR USE ID. PASTE YOUR ORDER ID.",
-      binanceIdLabel: "BINANCE PAY ID",
-      binancePlaceholder: "Transaction ID",
+      binanceInstruction: "SCAN THE QR OR USE THE ID. THEN PASTE YOUR ORDER ID.",
+      binanceIdLabel: "OUR BINANCE PAY ID",
+      binancePlaceholder: "Paste your Transaction ID",
       binanceConfirm: "INFORM PAYMENT",
-      binanceSuccess: "Sent! Credits pending verification."
+      binanceSuccess: "Request sent! Credits will be added after verification."
     },
     es: {
       heroTitle: "Optimización SEO Masiva",
@@ -101,18 +101,18 @@ export default function SEOWizard() {
       bestValue: "Mejor Valor",
       selectPlan: "PAGAR CON BINANCE",
       feature1: "Créditos IA",
-      binanceInstruction: "ESCANEA EL QR O USA EL ID. PEGA TU ID DE PAGO.",
-      binanceIdLabel: "BINANCE PAY ID",
-      binancePlaceholder: "ID de Transacción",
+      binanceInstruction: "ESCANEA EL QR O USA EL ID. LUEGO PEGA EL ID DE ORDEN DE TU PAGO.",
+      binanceIdLabel: "NUESTRO BINANCE PAY ID",
+      binancePlaceholder: "Pega el ID de Transacción",
       binanceConfirm: "INFORMAR PAGO",
-      binanceSuccess: "¡Enviado! Créditos en verificación."
+      binanceSuccess: "¡Enviado! Los créditos se activarán tras verificar el pago."
     }
   };
 
   const plans = [
-    { name: t[lang].starter, price: '12', credits: 100, features: [`100 ${t[lang].feature1}`, "Alt Text Preciso", "Excel Export"] },
-    { name: t[lang].pro, price: '39', credits: 500, popular: true, save: `${t[lang].save} 35%`, features: [`500 ${t[lang].feature1}`, 'Priority Support', 'Ultra-Fast Analysis'] },
-    { name: t[lang].agency, price: '99', credits: 2000, save: t[lang].bestValue, features: [`2000 ${t[lang].feature1}`, 'Multi-site License', '24/7 Support'] },
+    { name: t[lang].starter, price: '12', credits: 100, features: [`100 ${t[lang].feature1}`, "Alt Text Preciso", "Excel Export", "ZIP Download"] },
+    { name: t[lang].pro, price: '39', credits: 500, popular: true, save: `${t[lang].save} 35%`, features: [`500 ${t[lang].feature1}`, 'Priority Support', 'Ultra-Fast Analysis', 'Commercial Use'] },
+    { name: t[lang].agency, price: '99', credits: 2000, save: t[lang].bestValue, features: [`2000 ${t[lang].feature1}`, 'Multi-site License', 'API Access Beta', '24/7 Support'] },
   ];
 
   const handleBinanceSubmit = async () => {
@@ -294,70 +294,83 @@ export default function SEOWizard() {
         ) : (
           <div className="space-y-6">
             {showPricing && (
-              <div className="fixed inset-0 bg-black/95 z-[99999] flex items-center justify-center p-4 backdrop-blur-xl">
-                <div className="bg-[#0a0a0a] border border-white/10 p-5 md:p-8 rounded-[2.5rem] max-w-xl w-full relative shadow-2xl overflow-y-auto max-h-[95vh]">
+              <div className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4 backdrop-blur-xl overflow-hidden">
+                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-10 rounded-[3rem] max-w-4xl w-full relative shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in duration-300">
                   
-                  {/* X REDISEÑADA: POSICIÓN FIJA Y Z-INDEX SUPREMO */}
+                  {/* BOTÓN X GLOBAL PARA EL MODAL DE PRECIOS */}
                   <button 
                     onClick={() => { setShowPricing(false); setSelectedPlan(null); }} 
                     style={{ cursor: 'pointer' }}
-                    className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-red-500 rounded-full transition-all border border-white/10 z-[100000]"
+                    className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-red-500 hover:text-white rounded-full transition-all border border-white/10 z-[10000] group"
                   >
-                    <X className="w-5 h-5 text-white" />
+                    <X className="w-6 h-6 text-white group-hover:scale-110" />
                   </button>
                   
-                  <div className="text-center mb-6">
-                    <h2 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter">{t[lang].pricingTitle} <span className="text-yellow-500">PRIME</span></h2>
+                  <div className="text-center mb-10">
+                    <h2 className="text-3xl md:text-4xl font-black italic uppercase mb-1 tracking-tighter">{t[lang].pricingTitle} <span className="text-yellow-500">PRIME</span></h2>
+                    <div className="flex items-center justify-center gap-2 text-[10px] text-gray-600 font-bold uppercase tracking-widest">
+                       <CreditCard className="w-3 h-3" /> BINANCE PAY ONLY
+                    </div>
                   </div>
                   
                   {!selectedPlan ? (
-                    <div className="grid gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {plans.map((p) => (
-                        <div key={p.name} className={`flex items-center justify-between p-5 rounded-2xl border transition-all ${p.popular ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-white/5 bg-white/[0.01]'}`}>
-                          <div>
-                             <h3 className="font-black uppercase text-[10px] text-gray-500 tracking-widest">{p.name}</h3>
-                             <div className="text-2xl font-black tracking-tighter">${p.price} <span className="text-[10px] text-gray-600 font-bold uppercase">USDT</span></div>
-                             <div className="text-[9px] font-black text-yellow-500/60 uppercase">{p.credits} CREDITS</div>
-                          </div>
-                          <button onClick={() => setSelectedPlan(p)} style={{ cursor: 'pointer' }} className="px-6 py-3 rounded-xl font-black uppercase italic text-[10px] transition-all bg-yellow-500 text-black hover:scale-105 shadow-lg shadow-yellow-500/10">{t[lang].selectPlan}</button>
+                        <div key={p.name} className={`relative flex flex-col p-8 rounded-[2.5rem] border transition-all duration-500 ${p.popular ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-white/5 bg-white/[0.01]'}`}>
+                          {p.save && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-600 text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">{p.save}</span>}
+                          <h3 className="font-black uppercase mb-1 text-[10px] text-gray-500 tracking-widest">{p.name}</h3>
+                          <div className="text-4xl font-black mb-1 tracking-tighter">${p.price} <span className="text-xs text-gray-600 font-bold uppercase">USDT</span></div>
+                          <div className="text-[10px] font-black text-yellow-500/60 uppercase mb-6">{p.credits} CREDITS</div>
+                          <ul className="space-y-4 mb-8 flex-1">
+                            {p.features.map(f => (
+                              <li key={f} className="flex items-center gap-3 text-[11px] font-bold text-gray-400 italic leading-none"><Check className="w-3.5 h-3.5 text-yellow-500" /> {f}</li>
+                            ))}
+                          </ul>
+                          <button onClick={() => setSelectedPlan(p)} style={{ cursor: 'pointer' }} className="block text-center p-4 rounded-2xl font-black uppercase italic text-[10px] transition-all bg-yellow-500 text-black hover:bg-yellow-400 shadow-xl shadow-yellow-500/10">{t[lang].selectPlan}</button>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="bg-white/[0.02] border border-white/5 p-6 rounded-[2rem] space-y-4 relative animate-in zoom-in duration-200">
-                        {/* Botón volver a planes */}
-                        <button onClick={() => setSelectedPlan(null)} style={{ cursor: 'pointer' }} className="absolute top-3 left-3 text-[10px] font-black uppercase text-gray-500 hover:text-white flex items-center gap-1"> ← BACK </button>
+                    <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-8 rounded-[3rem] space-y-6 relative">
+                        {/* BOTÓN X PARA VOLVER ATRÁS DENTRO DEL QR */}
+                        <button 
+                          onClick={() => setSelectedPlan(null)} 
+                          style={{ cursor: 'pointer' }}
+                          className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 transition-all z-[10001]"
+                        >
+                          <X className="w-4 h-4 text-white" />
+                        </button>
 
-                        <div className="text-center space-y-4">
-                           <p className="text-[9px] text-gray-400 font-black uppercase tracking-tight max-w-[220px] mx-auto leading-none pt-4">{t[lang].binanceInstruction}</p>
+                        <div className="text-center space-y-6">
+                           <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter max-w-[200px] mx-auto leading-relaxed">{t[lang].binanceInstruction}</p>
                            
-                           <div className="relative mx-auto w-32 h-32 bg-white p-1 rounded-xl shadow-xl">
+                           <div className="relative mx-auto w-48 h-48 bg-white p-2 rounded-2xl shadow-2xl">
                               <img src="/binance.jfif" alt="Binance QR" className="w-full h-full object-contain" />
                            </div>
 
-                           <div className="bg-black/40 border border-yellow-500/20 p-3 rounded-xl">
-                              <span className="text-[7px] text-yellow-500 font-black uppercase block tracking-widest">{t[lang].binanceIdLabel}</span>
-                              <div className="flex items-center justify-center gap-2">
-                                 <span className="text-xl font-mono font-black text-white tracking-tighter">58318589</span>
-                                 <button onClick={() => { navigator.clipboard.writeText('58318589'); alert('ID Copiado'); }} style={{ cursor: 'pointer' }} className="p-1.5 hover:bg-white/10 rounded-lg transition-all"><Copy className="w-4 h-4 text-yellow-500"/></button>
+                           <div className="bg-black/40 border border-yellow-500/20 p-5 rounded-2xl relative">
+                              <span className="text-[8px] text-yellow-500 font-black uppercase block mb-1 tracking-widest">{t[lang].binanceIdLabel}</span>
+                              <div className="flex items-center justify-center gap-3">
+                                 <span className="text-2xl font-mono font-black text-white">58318589</span>
+                                 <button onClick={() => { navigator.clipboard.writeText('58318589'); alert('ID Copiado'); }} style={{ cursor: 'pointer' }} className="p-2 hover:bg-white/10 rounded-xl transition-all"><Copy className="w-5 h-5 text-yellow-500"/></button>
                               </div>
                            </div>
-                           <div className="text-2xl font-black italic uppercase text-white tracking-tighter leading-none">TOTAL: ${selectedPlan.price} USDT</div>
+                           <div className="text-3xl font-black italic uppercase text-white tracking-tighter">MONTO: ${selectedPlan.price} USDT</div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                            <input 
                               type="text" 
                               placeholder={t[lang].binancePlaceholder}
                               value={binanceTxId}
                               onChange={(e) => setBinanceTxId(e.target.value)}
-                              className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-xs font-bold outline-none focus:border-yellow-500 text-center uppercase"
+                              className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-xs font-bold outline-none focus:border-yellow-500 transition-all text-center tracking-widest uppercase"
                            />
                            <button 
                               onClick={handleBinanceSubmit}
                               disabled={isSubmitting || !binanceTxId}
                               style={{ cursor: 'pointer' }} 
-                              className="w-full bg-yellow-500 text-black p-4 rounded-xl font-black uppercase italic text-[11px] hover:bg-yellow-400 transition-all disabled:opacity-30 shadow-xl shadow-yellow-500/10"
+                              className="w-full bg-yellow-500 text-black p-5 rounded-2xl font-black uppercase italic text-[12px] hover:bg-yellow-400 transition-all disabled:opacity-30 shadow-2xl shadow-yellow-500/10"
                            >
                               {isSubmitting ? "..." : t[lang].binanceConfirm}
                            </button>
@@ -412,6 +425,13 @@ export default function SEOWizard() {
                     saveAs(new Blob([csv], { type: 'text/csv' }), "seo_export.csv");
                   }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-3 bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-2xl text-emerald-500 font-black uppercase italic text-[10px] hover:bg-emerald-500/10 transition-all">
                     <FileSpreadsheet className="w-4 h-4" /> {t[lang].exportCsv}
+                  </button>
+                  <button onClick={async () => {
+                    const zip = new JSZip();
+                    results.forEach(res => zip.file(`${sanitizeFileName(res.fileName)}.jpg`, res.preview.split(',')[1], { base64: true }));
+                    saveAs(await zip.generateAsync({ type: "blob" }), "seo_package.zip");
+                  }} style={{ cursor: 'pointer' }} className="flex-1 flex items-center justify-center gap-3 bg-violet-500/5 border border-violet-500/10 p-4 rounded-2xl text-violet-500 font-black uppercase italic text-[10px] hover:bg-violet-500/10 transition-all">
+                    <FileArchive className="w-4 h-4" /> {t[lang].downloadZip}
                   </button>
                 </div>
 
