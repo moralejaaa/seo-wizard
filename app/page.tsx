@@ -258,7 +258,7 @@ export default function SEOWizard() {
         </div>
         
         <div className="flex items-center gap-3">
-          <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} style={{ cursor: 'pointer' }} className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase italic hover:bg-white/10 transition-all">
+          <button onClick={() => setLang(lang === 'es' ? 'en' : 'es')} style={{ cursor: 'pointer' }} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase italic hover:bg-white/10 transition-all">
             <Languages className="w-3 h-3" /> {lang === 'es' ? 'EN' : 'ES'}
           </button>
 
@@ -294,13 +294,14 @@ export default function SEOWizard() {
         ) : (
           <div className="space-y-6">
             {showPricing && (
-              <div className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 backdrop-blur-xl overflow-y-auto">
-                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 rounded-[3rem] max-w-4xl w-full relative my-8">
-                  {/* BOTÓN X PARA CERRAR TODO EL MODAL */}
+              <div className="fixed inset-0 bg-black/90 z-[999] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto" onClick={() => { setShowPricing(false); setSelectedPlan(null); }}>
+                <div className="bg-[#0a0a0a] border border-white/10 p-6 md:p-8 rounded-[3rem] max-w-4xl w-full relative my-8" onClick={(e) => e.stopPropagation()}>
+                  
+                  {/* BOTÓN X CORREGIDO: Ahora dentro del contenedor y con z-index alto */}
                   <button 
                     onClick={() => { setShowPricing(false); setSelectedPlan(null); }} 
                     style={{ cursor: 'pointer' }} 
-                    className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all border border-white/10 z-[110]"
+                    className="absolute top-6 right-6 p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-all border border-white/10 z-[1001]"
                   >
                     <X className="w-5 h-5 text-white" />
                   </button>
@@ -331,11 +332,11 @@ export default function SEOWizard() {
                     </div>
                   ) : (
                     <div className="max-w-md mx-auto bg-white/[0.02] border border-white/5 p-8 rounded-[3rem] space-y-6 animate-in fade-in zoom-in duration-300 relative">
-                        {/* BOTÓN X INTERNO PARA EL QR - POSICIONAMIENTO CORREGIDO */}
+                        {/* X Interna para volver a los planes */}
                         <button 
                           onClick={() => setSelectedPlan(null)} 
                           style={{ cursor: 'pointer' }}
-                          className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 transition-all z-[120]"
+                          className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 transition-all z-[1002]"
                         >
                           <X className="w-4 h-4 text-white" />
                         </button>
@@ -343,7 +344,6 @@ export default function SEOWizard() {
                         <div className="text-center space-y-6">
                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter max-w-[200px] mx-auto leading-relaxed">{t[lang].binanceInstruction}</p>
                            
-                           {/* CONTENEDOR DEL QR */}
                            <div className="relative group mx-auto w-48 h-48 bg-white p-2 rounded-2xl shadow-2xl shadow-yellow-500/10">
                               <img src="/binance.jfif" alt="Binance QR" className="w-full h-full object-contain" />
                            </div>
